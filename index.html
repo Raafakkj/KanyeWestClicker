@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanye West Clicker</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="container">
+        <section class="left-panel">
+            <h1 class="title">Kanye West Clicker!</h1>
+            <div class="score-container">
+                <h1 id="points">Kanye Points: 0</h1>
+            </div>
+
+            <div class="clicker-container">
+                <button id="kanye"><img src="assets/kanye/41-414314_transparent-kanye-head-png-kanye-west-head-png.png" alt="Kanye West"></button>
+            </div>
+        </section>
+
+        <aside class="right-panel">
+            <h2 class="side-title">Informações.</h2>
+            <p class="side-subtitle">Yeezus?</p>
+            <h1 id="items" class="items-list">Itens: Nenhum</h1>
+
+            <!-- Botoes de menu -->
+            <div class="top-menu">
+                <button class="open-shop-btn" onclick="abrirLoja()">Loja</button>
+                <button class="open-achievements-btn" onclick="abrirConquistas()">Conquistas</button>
+                <button class="open-custom-btn" onclick="abrirPersonalizacao()">Personalizar</button>
+                <button class="open-leaderboard-btn" onclick="abrirLeaderboard()">Leaderboard</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Alerta Personalizado -->
+    <div id="customAlert" class="alert-overlay">
+        <div class="alert-box">
+            <h2>Congratulations!</h2>
+            <div class="alert-image">
+                <img src="assets/kanye/kanye-west.gif" alt="Kanye Celebration">
+            </div>
+            <p class="alert-message">You reached <span id="alertPoints">67</span> Kanye Points!</p>
+            <button class="alert-btn" onclick="fecharAlert()">OK</button>
+        </div>
+    </div>
+
+    <!-- Loja -->
+    <div id="shop" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Loja</h2>
+            <div class="shop-items" id="shop-items"></div>
+
+            <button class="shop-close-btn" onclick="fecharLoja()">Fechar</button>
+        </div>
+    </div>
+    <!-- Conquistas -->
+    <div id="achievements" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Conquistas</h2>
+            <div class="shop-items" id="lista-conquistas"></div>
+            <div class="achievements-pagination">
+                <button class="shop-btn page-btn" onclick="paginaAnteriorConquistas()">Anterior</button>
+                <span id="achievements-page-info">Pagina 1 / 1</span>
+                <button class="shop-btn page-btn" onclick="paginaProximaConquistas()">Proxima</button>
+            </div>
+            <button class="shop-close-btn" onclick="fecharConquistas()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Personalizacao -->
+    <div id="customization" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Personalizacao</h2>
+            <div class="shop-items" id="lista-skins"></div>
+            <button class="shop-close-btn" onclick="fecharPersonalizacao()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboard" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Leaderboard</h2>
+            <div class="leaderboard-form">
+                <input id="leaderboard-name" type="text" maxlength="20" placeholder="Seu nome">
+                <button class="shop-btn" onclick="salvarScoreLeaderboard()">Salvar score atual</button>
+            </div>
+            <div class="shop-items" id="leaderboard-lista"></div>
+            <button class="shop-close-btn" onclick="fecharLeaderboard()">Fechar</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

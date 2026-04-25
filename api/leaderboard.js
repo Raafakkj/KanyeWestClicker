@@ -2,8 +2,8 @@ const LEADERBOARD_KEY = "kanye_clicker_leaderboard";
 const MAX_ENTRIES = 5;
 
 function getKvConfig() {
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
+    const url = process.env.KV_REST_API_URL = "https://top-snapper-106832.upstash.io"; 
+    const token = process.env.KV_REST_API_TOKEN = "gQAAAAAAAaFQAAIgcDFjN2NiMGIyZDBhMzI0YmYxYmZlNGZhMDU5ZmNiMTU4ZA";
 
     if (!url || !token) {
         return null;

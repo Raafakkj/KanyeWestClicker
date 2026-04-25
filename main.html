@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="main.css">
+<body>
+    <div class="container">
+        <div class="score-container">
+            <h1 id="points">Kanye Points: 0</h1>
+        </div>
+
+        <div class="clicker-container">
+            <button id="kanye"><img src="41-414314_transparent-kanye-head-png-kanye-west-head-png.png" alt="Kanye West"></button>
+        </div>
+    </div>
+
+    <!-- Alerta Personalizado -->
+    <div id="customAlert" class="alert-overlay">
+        <div class="alert-box">
+            <h2>🎉 Congratulations! 🎉</h2>
+            <div class="alert-image">
+                <img src="kanye-west.gif" alt="Kanye Celebration">
+            </div>
+            <p class="alert-message">You reached <span id="alertPoints">67</span> Kanye Points!</p>
+            <button class="alert-btn" onclick="fecharAlert()">OK</button>
+        </div>
+    </div>
+
+
+    <!-- Loja -->
+    <div id="shop" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">🛒 Loja</h2>
+            
+            <div class="shop-items">
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h3>Auto Clicker</h3>
+                        <p>Ganha 1 ponto por segundo</p>
+                        <span class="item-price"><span id="preco-auto">10</span> pontos</span>
+                    </div>
+                    <button class="shop-btn" onclick="comprarAutoClick()">Comprar</button>
+                </div>
+
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h3>Click +5</h3>
+                        <p>Aumenta poder do clique</p>
+                        <span class="item-price"><span id="preco-upgrade">20</span> pontos</span>
+                    </div>
+                    <button class="shop-btn" onclick="comprarUpgradeClick()">Comprar</button>
+                </div>
+            </div>
+
+            <button class="shop-close-btn" onclick="fecharLoja()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Botão Abrir Loja -->
+    <button class="open-shop-btn" onclick="abrirLoja()">🛒 Loja</button>
+
+    <!-- Botão Conquistas -->
+    <button class="open-achievements-btn" onclick="abrirConquistas()">🏆 Conquistas</button>
+
+    <!-- Botão Personalização -->
+    <button class="open-custom-btn" onclick="abrirPersonalizacao()">🎨 Personalizar</button>
+
+    <h1 class="title">Kanye West Clicker!</h1>
+
+    <h1 id="items" class="items-list">Itens: Nenhum</h1>
+
+    <!-- Conquistas -->
+    <div id="achievements" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">🏆 Conquistas</h2>
+            <div class="shop-items" id="lista-conquistas">
+                <!-- Conquistas geradas via JS -->
+            </div>
+            <button class="shop-close-btn" onclick="fecharConquistas()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Personalização -->
+    <div id="customization" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">🎨 Personalização</h2>
+            <div class="shop-items" id="lista-skins">
+                <!-- Skins geradas via JS -->
+            </div>
+            <button class="shop-close-btn" onclick="fecharPersonalizacao()">Fechar</button>
+        </div>
+    </div>
+
+</body>
+<script src="main.js"></script>
+</html>

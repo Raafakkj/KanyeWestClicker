@@ -291,8 +291,8 @@ body {
 
 .golden-click-btn {
     position: absolute;
-    width: 66px;
-    height: 66px;
+    width: 84px;
+    height: 84px;
     border-radius: 50%;
     border: 1px solid #fff2c2;
     background-color: #222;
@@ -316,7 +316,7 @@ body {
 }
 
 .golden-click-btn:hover {
-    transform: scale(1.16);
+    transform: scale(1.14);
 }
 
 .side-title {

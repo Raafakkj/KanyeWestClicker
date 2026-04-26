@@ -2,8 +2,8 @@ const LEADERBOARD_KEY = "kanye_clicker_leaderboard";
 const MAX_ENTRIES = 5;
 
 function getKvConfig() {
-    const url = process.env.KV_REST_API_URL = "https://top-snapper-106832.upstash.io"; 
-    const token = process.env.KV_REST_API_TOKEN = "gQAAAAAAAaFQAAIgcDFjN2NiMGIyZDBhMzI0YmYxYmZlNGZhMDU5ZmNiMTU4ZA";
+    const url = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
 
     if (!url || !token) {
         return null;
@@ -25,6 +25,7 @@ function normalizeEntries(entries) {
         .map((entry) => ({
             nome: normalizeName(entry && entry.nome),
             score: Math.max(0, Math.floor(Number(entry && entry.score) || 0)),
+            rebirths: Math.max(0, Math.floor(Number(entry && entry.rebirths) || 0)),
             criadoEm: entry && entry.criadoEm ? String(entry.criadoEm) : new Date().toISOString()
         }))
         .filter((entry) => entry.nome.length > 0);
@@ -34,13 +35,13 @@ function normalizeEntries(entries) {
     sanitized.forEach((entry) => {
         const key = entry.nome.toLowerCase();
         const current = bestByPlayer.get(key);
-        if (!current || entry.score > current.score) {
+        if (!current || entry.score > current.score || (entry.score === current.score && entry.rebirths > current.rebirths)) {
             bestByPlayer.set(key, entry);
         }
     });
 
     return Array.from(bestByPlayer.values())
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => (b.score - a.score) || (b.rebirths - a.rebirths))
         .slice(0, MAX_ENTRIES);
 }
 
@@ -104,6 +105,7 @@ module.exports = async function handler(req, res) {
             const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
             const nome = normalizeName(body.nome);
             const score = Math.max(0, Math.floor(Number(body.score) || 0));
+            const rebirths = Math.max(0, Math.floor(Number(body.rebirths) || 0));
 
             if (!nome) {
                 res.statusCode = 400;
@@ -117,6 +119,7 @@ module.exports = async function handler(req, res) {
                 {
                     nome,
                     score,
+                    rebirths,
                     criadoEm: new Date().toISOString()
                 }
             ]);

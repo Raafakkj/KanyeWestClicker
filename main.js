@@ -137,7 +137,7 @@ const SPECIAL_UPGRADES = [
     {
         id: "auto_speed",
         nome: "Clock Boost",
-        descricao: "Autoclick mais rÃ¡pido",
+        descricao: "Autoclick mais rapido",
         precoBase: 1800,
         valorPercent: 12,
         maxNivel: 8
@@ -218,7 +218,7 @@ const MUSIC_TRACKS = [
         nome: "Silencio",
         preco: 0,
         bonus: 0,
-        descricao: "Sem bÃ´nus de mÃºsica",
+        descricao: "Sem bonus de musica",
         audio: ""
     },
     {
@@ -401,7 +401,7 @@ const ACHIEVEMENTS = [
     { id: 22, nome: "Wardrobe", descricao: "Compre 5 skins", tipo: "skins_owned", meta: 5, recompensa: { pontos: 500 } },
     { id: 23, nome: "Style Icon", descricao: "Use bonus de skin +20%", tipo: "skin_bonus", meta: 20 },
     { id: 24, nome: "Fashion Empire", descricao: "Use bonus de skin +35%", tipo: "skin_bonus", meta: 35, recompensa: { pontos: 1000 } },
-    { id: 33, nome: "Collector Cut", descricao: "Desbloqueie 5 mÃºsicas", tipo: "musics_owned", meta: 5, recompensa: { pontos: 2200 } },
+    { id: 33, nome: "Collector Cut", descricao: "Desbloqueie 5 musicas", tipo: "musics_owned", meta: 5, recompensa: { pontos: 2200 } },
 
     { id: 25, nome: "Ranked", descricao: "Salve 1 score na leaderboard", tipo: "leaderboard_entries", meta: 1 },
     { id: 26, nome: "Competition", descricao: "Tenha 5 scores na leaderboard", tipo: "leaderboard_entries", meta: 5, recompensa: { pontos: 800 } },
@@ -642,9 +642,9 @@ async function tocarMusicaPorId(musicId, fromUserAction = false) {
         return true;
     } catch (error) {
         if (fromUserAction) {
-            alert(`NÃ£o foi possÃ­vel tocar ${music.nome}. Confirme o arquivo em ${music.audio}.`);
+            alert(`Nao foi possivel tocar ${music.nome}. Confirme o arquivo em ${music.audio}.`);
         } else {
-            console.warn(`NÃ£o foi possÃ­vel iniciar ${music.nome} automaticamente.`, error);
+            console.warn(`Nao foi possivel iniciar ${music.nome} automaticamente.`, error);
         }
         return false;
     }
@@ -669,7 +669,7 @@ function tocarSomEventoDouble() {
     eventSfxPlayer.currentTime = 0;
     eventSfxPlayer.volume = EVENT_SCRATCH_VOLUME;
     eventSfxPlayer.play().catch((error) => {
-        console.warn("NÃ£o foi possÃ­vel tocar o som do evento x2.", error);
+        console.warn("Nao foi possivel tocar o som do evento x2.", error);
     });
 }
 
@@ -698,7 +698,7 @@ function tocarSomCompraCash() {
     cashSfx.volume = CASH_SFX_VOLUME;
 
     cashSfx.play().catch((error) => {
-        console.warn("NÃ£o foi possÃ­vel tocar o som de compra.", error);
+        console.warn("Nao foi possivel tocar o som de compra.", error);
     });
 }
 
@@ -707,7 +707,7 @@ function tocarSomErroCompra() {
     errorSfx.volume = ERROR_SFX_VOLUME;
 
     errorSfx.play().catch((error) => {
-        console.warn("NÃ£o foi possÃ­vel tocar o som de erro de compra.", error);
+        console.warn("Nao foi possivel tocar o som de erro de compra.", error);
     });
 }
 
@@ -721,7 +721,7 @@ function sinalizarBotaoCompraInvalida(buttonEl) {
     }
 
     buttonEl.classList.remove("purchase-error");
-    // Reinicia a animaÃ§Ã£o para funcionar em cliques consecutivos.
+    // Reinicia a animacao para funcionar em cliques consecutivos.
     void buttonEl.offsetWidth;
     buttonEl.classList.add("purchase-error");
     buttonEl._invalidPurchaseTimeoutId = setTimeout(() => {
@@ -1050,7 +1050,7 @@ function getDescricaoBonusUpgrade(upgrade, level) {
     if (upgrade.id === "xp_click") {
         return `XP por clique atual: +${bonusAtual}`;
     }
-    return `BÃƒÂ´nus atual: +${bonusAtual}%`;
+    return `Bonus atual: +${bonusAtual}%`;
 }
 
 function calcularRebirthsPossiveisComPontos(pointsValue, rebirthCountBase = gameState.rebirthCount) {
@@ -1079,14 +1079,14 @@ function atualizarRebirthUI() {
 
     const statusEl = document.getElementById("rebirth-status");
     if (statusEl) {
-        statusEl.textContent = `Rebirths: ${formatNumber(gameState.rebirthCount)} | BÃ´nus: +${formatNumber(bonusPercent)}%`;
+        statusEl.textContent = `Rebirths: ${formatNumber(gameState.rebirthCount)} | Bonus: +${formatNumber(bonusPercent)}%`;
     }
 
     const nextEl = document.getElementById("rebirth-next");
     if (nextEl) {
         nextEl.textContent = rebirthsPossiveis > 0
             ? `Pronto para rebirth: +${formatNumber(rebirthsPossiveis)} agora`
-            : `PrÃ³ximo em ${formatNumber(requirement)} pontos`;
+            : `Proximo em ${formatNumber(requirement)} pontos`;
     }
 
     const floatButton = document.getElementById("rebirth-float-btn");
@@ -1111,7 +1111,7 @@ function resetarProgressaoParaRebirth() {
 function tentarRebirth() {
     const rebirthsGanhos = calcularRebirthsPossiveisComPontos(gameState.points);
     if (rebirthsGanhos <= 0) {
-        alert(`VocÃª precisa de ${formatNumber(getRebirthRequirement())} pontos para fazer rebirth.`);
+        alert(`Voce precisa de ${formatNumber(getRebirthRequirement())} pontos para fazer rebirth.`);
         return;
     }
 
@@ -1122,7 +1122,7 @@ function tentarRebirth() {
     const summary = document.getElementById("rebirth-confirm-summary");
     if (summary) {
         summary.textContent =
-            `VocÃª ganharÃ¡ ${formatNumber(rebirthsGanhos)} rebirth(s). BÃ´nus: +${formatNumber(bonusAtual)}% -> +${formatNumber(bonusNovo)}%.`;
+            `Voce ganhara ${formatNumber(rebirthsGanhos)} rebirth(s). Bonus: +${formatNumber(bonusAtual)}% -> +${formatNumber(bonusNovo)}%.`;
     }
 
     document.getElementById("rebirth-confirm").style.display = "flex";
@@ -1156,7 +1156,7 @@ function confirmarRebirth() {
     verificarConquistas();
     saveGameState();
 
-    mostrarAnimacaoCompra(`Rebirth +${rebirthsGanhos}! BÃ´nus permanente aumentado.`);
+    mostrarAnimacaoCompra(`Rebirth +${rebirthsGanhos}! Bonus permanente aumentado.`);
 }
 
 function adicionarPontos(baseAmount) {
@@ -1169,7 +1169,7 @@ function saveGameState() {
     try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
     } catch (error) {
-        console.error("NÃ£o foi possÃ­vel salvar o progresso.", error);
+        console.error("Nao foi possivel salvar o progresso.", error);
     }
 }
 
@@ -1308,7 +1308,7 @@ function saveLeaderboardCache() {
     try {
         localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(leaderboardData));
     } catch (error) {
-        console.error("NÃ£o foi possÃ­vel salvar leaderboard local.", error);
+        console.error("Nao foi possivel salvar leaderboard local.", error);
     }
 }
 
@@ -1337,7 +1337,7 @@ async function carregarLeaderboardLocal() {
             scores: sanitizeLeaderboardEntries(data.scores)
         };
     } catch (error) {
-        console.warn("NÃ£o foi possÃ­vel carregar leaderboard.json. Usando seed interna.", error);
+        console.warn("Nao foi possivel carregar leaderboard.json. Usando seed interna.", error);
         leaderboardData = {
             scores: sanitizeLeaderboardEntries(LEADERBOARD_DEFAULT_SCORES)
         };
@@ -1533,7 +1533,7 @@ function atualizarBarraXp() {
     const xpCurrent = Math.max(0, Math.min(xpRequired - 1, Math.floor(safeNumber(gameState.xpCurrent, 0))));
     const progressPercent = Math.min(100, Math.max(0, (xpCurrent / xpRequired) * 100));
 
-    levelEl.textContent = `NÃ­vel ${formatNumber(xpLevel)}`;
+    levelEl.textContent = `Nivel ${formatNumber(xpLevel)}`;
     progressEl.textContent = `${formatNumber(xpCurrent)} / ${formatNumber(xpRequired)} XP`;
     fillEl.style.width = `${progressPercent.toFixed(2)}%`;
 }
@@ -1548,7 +1548,7 @@ function atualizarItens() {
     const sideTitle = document.querySelector(".side-title");
     const sideSubtitle = document.querySelector(".side-subtitle");
     if (sideTitle) {
-        sideTitle.textContent = `ImpÃ©rio de ${nickname}`;
+        sideTitle.textContent = `Imperio de ${nickname}`;
     }
     if (sideSubtitle) {
         sideSubtitle.textContent = `Resumo da carreira de ${nickname}`;
@@ -1586,7 +1586,7 @@ function atualizarItens() {
         : "<span class='items-empty'>Nenhum item comprado ainda</span>";
 
     itemsContainer.innerHTML = `
-        <div class="items-title">Resumo rÃ¡pido</div>
+        <div class="items-title">Resumo rapido</div>
         <div class="items-stats-grid">
             <div class="items-stat-card">
                 <span class="items-stat-label">Poder</span>
@@ -1597,7 +1597,7 @@ function atualizarItens() {
                 <span class="items-stat-value">${formatNumber(rebirths)}</span>
             </div>
             <div class="items-stat-card">
-                <span class="items-stat-label">ColeÃ§Ã£o</span>
+                <span class="items-stat-label">Colecao</span>
                 <span class="items-stat-value">${formatNumber(colecaoPercentual)}%</span>
             </div>
             <div class="items-stat-card">
@@ -1606,7 +1606,7 @@ function atualizarItens() {
             </div>
         </div>
         <p class="items-meta">Ativos: <strong>${skinAtual.nome}</strong> e <strong>${musicaAtual.nome}</strong></p>
-        <p class="items-meta">ColeÃ§Ã£o desbloqueada: ${formatNumber(colecaoAtual)} / ${formatNumber(colecaoTotal)}</p>
+        <p class="items-meta">Colecao desbloqueada: ${formatNumber(colecaoAtual)} / ${formatNumber(colecaoTotal)}</p>
         <div class="items-chips">
             ${listaChips}
         </div>
@@ -1684,7 +1684,7 @@ function renderizarUpgrades() {
     container.innerHTML = SPECIAL_UPGRADES.map((upgrade) => {
         const state = gameState.upgrades[upgrade.id];
         const maximo = state.nivel >= upgrade.maxNivel;
-        const textoPreco = maximo ? "MÃ¡ximo atingido" : `${formatNumber(state.preco)} pontos`;
+        const textoPreco = maximo ? "Maximo atingido" : `${formatNumber(state.preco)} pontos`;
         const botaoLabel = maximo ? "Max" : "Melhorar";
         const descricaoBonus = getDescricaoBonusUpgrade(upgrade, state.nivel);
 
@@ -1715,7 +1715,7 @@ function comprarUpgrade(upgradeId, buttonEl = null) {
     }
 
     if (state.nivel >= upgrade.maxNivel) {
-        mostrarAnimacaoCompra(`${upgrade.nome} jÃ¡ estÃ¡ no nÃ­vel mÃ¡ximo.`);
+        mostrarAnimacaoCompra(`${upgrade.nome} ja esta no nivel maximo.`);
         return;
     }
 
@@ -1891,7 +1891,7 @@ function renderizarConquistas() {
         `;
     }).join("");
 
-    pageInfo.textContent = `PÃ¡gina ${conquistasPaginaAtual} / ${totalPages}`;
+    pageInfo.textContent = `Pagina ${conquistasPaginaAtual} / ${totalPages}`;
 
     const canPrev = conquistasPaginaAtual > 1;
     const canNext = conquistasPaginaAtual < totalPages;
@@ -1935,7 +1935,7 @@ function renderizarSkins() {
                 <div class="item-info">
                     <h3>${usando ? "*" : ""} ${skin.nome}</h3>
                     <p>${skin.preco === 0 ? "Gratis" : `${formatNumber(skin.preco)} pontos`}</p>
-                    <p>BÃ´nus: +${skin.bonus}% no ganho de pontos</p>
+                    <p>Bonus: +${skin.bonus}% no ganho de pontos</p>
                 </div>
                 ${comprado
                     ? (usando
@@ -2019,7 +2019,7 @@ function renderizarMusicas() {
                     <h3>${usando ? "*" : ""} ${music.nome}</h3>
                     <p>${music.descricao}</p>
                     <p>${music.preco === 0 ? "Gratis" : `${formatNumber(music.preco)} pontos`}</p>
-                    <p>BÃ´nus: +${music.bonus}%</p>
+                    <p>Bonus: +${music.bonus}%</p>
                 </div>
                 ${comprado
                     ? (usando
@@ -2060,7 +2060,7 @@ function comprarMusica(id, buttonEl = null) {
     saveGameState();
 
     tocarSomCompraCash();
-    mostrarAnimacaoCompra(`MÃºsica liberada: ${music.nome} tocando agora!`);
+    mostrarAnimacaoCompra(`Musica liberada: ${music.nome} tocando agora!`);
 }
 
 function usarMusica(id) {
@@ -2151,7 +2151,7 @@ async function salvarConfiguracoes() {
 
     const novoNickname = normalizarNome(nicknameInput ? nicknameInput.value : "");
     if (!novoNickname) {
-        alert("Digite um nickname vÃ¡lido.");
+        alert("Digite um nickname valido.");
         return;
     }
 
@@ -2177,7 +2177,7 @@ async function salvarConfiguracoes() {
     atualizarItens();
     fecharConfiguracoes();
 
-    mostrarAnimacaoCompra("ConfiguraÃ§Ãµes salvas!");
+    mostrarAnimacaoCompra("Configuracoes salvas!");
 
     if (mudouNickname) {
         await sincronizarLeaderboardAutomaticamente(true);
@@ -2292,7 +2292,7 @@ async function salvarScoreLeaderboard() {
     const nome = getLeaderboardNickname();
 
     if (!nome) {
-        alert("Digite um nickname vÃ¡lido para salvar no ranking.");
+        alert("Digite um nickname valido para salvar no ranking.");
         return;
     }
 
@@ -2433,4 +2433,6 @@ async function initGame() {
 }
 
 initGame();
+
+
 

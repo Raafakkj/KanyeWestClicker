@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -12,6 +12,15 @@
             <h1 class="title">Kanye West Clicker!</h1>
             <div class="score-container">
                 <h1 id="points">Kanye Points: 0</h1>
+            </div>
+            <div class="xp-panel" aria-label="Progresso de experiência">
+                <div class="xp-header">
+                    <span id="xp-level">Nível 1</span>
+                    <span id="xp-progress-text">0 / 25 XP</span>
+                </div>
+                <div class="xp-track">
+                    <div id="xp-fill" class="xp-fill"></div>
+                </div>
             </div>
 
             <div class="clicker-container">
@@ -29,35 +38,37 @@
         </section>
 
         <aside class="right-panel">
-            <h2 class="side-title">Informações.</h2>
-            <p class="side-subtitle">Yeezus?</p>
+            <h2 class="side-title">Império do Player</h2>
+            <p class="side-subtitle">Resumo da carreira de Player</p>
             <div id="items" class="items-list"></div>
             <div class="rebirth-card">
-                <h3>Rebirth</h3>
-                <p id="rebirth-status">Rebirths: 0 | Bonus: +0%</p>
-                <p id="rebirth-next">Proximo em 250.000 pontos</p>
+                <h3>Prestígio (Rebirth)</h3>
+                <p id="rebirth-status">Rebirths: 0 | Bônus: +0%</p>
+                <p id="rebirth-next">Próximo em 250.000 pontos</p>
             </div>
 
-            <!-- Botoes de menu -->
+            <!-- Botões de menu -->
             <div class="top-menu">
                 <button class="open-shop-btn" onclick="abrirLoja()">Loja</button>
+                <button class="open-shop-btn" onclick="abrirUpgrades()">Upgrades</button>
                 <button class="open-achievements-btn" onclick="abrirConquistas()">Conquistas</button>
-                <button class="open-custom-btn" onclick="abrirPersonalizacao()">Personalizar</button>
+                <button class="open-custom-btn" onclick="abrirPersonalizacao()">Personalização</button>
                 <button class="open-leaderboard-btn" onclick="abrirLeaderboard()">Leaderboard</button>
-                <button class="open-settings-btn" onclick="abrirConfiguracoes()">Configuracoes</button>
+                <button class="open-settings-btn" onclick="abrirConfiguracoes()">Configurações</button>
             </div>
         </aside>
     </div>
 
-    <!-- Alerta Personalizado -->
-    <div id="customAlert" class="alert-overlay">
-        <div class="alert-box">
-            <h2>Congratulations!</h2>
-            <div class="alert-image">
-                <img src="assets/kanye/kanye-west.gif" alt="Kanye Celebration">
+    <!-- Confirmação de Rebirth -->
+    <div id="rebirth-confirm" class="shop-overlay">
+        <div class="shop-box rebirth-confirm-box">
+            <h2 class="shop-title">Confirmar rebirth</h2>
+            <p id="rebirth-confirm-summary" class="rebirth-confirm-summary">Revise os dados antes de confirmar.</p>
+            <p class="rebirth-confirm-warning">Isso vai resetar pontos, upgrades, itens da loja, skins e conquistas.</p>
+            <div class="rebirth-confirm-actions">
+                <button class="shop-btn" onclick="confirmarRebirth()">Confirmar rebirth</button>
+                <button class="shop-close-btn" onclick="fecharConfirmacaoRebirth()">Cancelar</button>
             </div>
-            <p class="alert-message">You reached <span id="alertPoints">67</span> Kanye Points!</p>
-            <button class="alert-btn" onclick="fecharAlert()">OK</button>
         </div>
     </div>
 
@@ -70,6 +81,16 @@
             <button class="shop-close-btn" onclick="fecharLoja()">Fechar</button>
         </div>
     </div>
+
+    <!-- Upgrades especiais -->
+    <div id="upgrades" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Upgrades Especiais</h2>
+            <div class="shop-items" id="upgrades-list"></div>
+            <button class="shop-close-btn" onclick="fecharUpgrades()">Fechar</button>
+        </div>
+    </div>
+
     <!-- Conquistas -->
     <div id="achievements" class="shop-overlay">
         <div class="shop-box">
@@ -77,17 +98,17 @@
             <div class="shop-items" id="lista-conquistas"></div>
             <div class="achievements-pagination">
                 <button class="shop-btn page-btn" onclick="paginaAnteriorConquistas()">Anterior</button>
-                <span id="achievements-page-info">Pagina 1 / 1</span>
-                <button class="shop-btn page-btn" onclick="paginaProximaConquistas()">Proxima</button>
+                <span id="achievements-page-info">Página 1 / 1</span>
+                <button class="shop-btn page-btn" onclick="paginaProximaConquistas()">Próxima</button>
             </div>
             <button class="shop-close-btn" onclick="fecharConquistas()">Fechar</button>
         </div>
     </div>
 
-    <!-- Personalizacao -->
+    <!-- Personalização -->
     <div id="customization" class="shop-overlay">
         <div class="shop-box">
-            <h2 class="shop-title">Personalizacao</h2>
+            <h2 class="shop-title">Personalização</h2>
             <div class="shop-items" id="lista-skins"></div>
             <button class="shop-close-btn" onclick="fecharPersonalizacao()">Fechar</button>
         </div>
@@ -105,36 +126,44 @@
         </div>
     </div>
 
-    <!-- Configuracoes -->
+    <!-- Configurações -->
     <div id="settings" class="shop-overlay">
         <div class="shop-box">
-            <h2 class="shop-title">Configuracoes</h2>
+            <h2 class="shop-title">Configurações</h2>
             <div class="settings-grid">
-                <label for="settings-nickname">Nickname</label>
-                <input id="settings-nickname" type="text" maxlength="20" placeholder="Seu nickname">
-                <label for="settings-volume">Volume da musica: <span id="settings-volume-value">45%</span></label>
-                <input id="settings-volume" type="range" min="0" max="100" step="1" value="45" oninput="atualizarPreviewVolumeConfiguracoes(this.value)">
+                <div class="settings-group">
+                    <label for="settings-nickname">Nickname</label>
+                    <input id="settings-nickname" type="text" maxlength="20" placeholder="Seu nickname">
+                </div>
+                <div class="settings-group">
+                    <label for="settings-volume">Volume da música: <span id="settings-volume-value">45%</span></label>
+                    <input id="settings-volume" type="range" min="0" max="100" step="1" value="45" oninput="atualizarPreviewVolumeConfiguracoes(this.value)">
+                </div>
+                <label class="settings-toggle" for="settings-click-sfx-enabled">
+                    <input id="settings-click-sfx-enabled" type="checkbox">
+                    <span>Desativar som de clique (pop)</span>
+                </label>
             </div>
-            <button class="shop-btn settings-save-btn" onclick="salvarConfiguracoes()">Salvar configuracoes</button>
+            <button class="shop-btn settings-save-btn" onclick="salvarConfiguracoes()">Salvar configurações</button>
             <button class="shop-close-btn" onclick="fecharConfiguracoes()">Fechar</button>
         </div>
     </div>
 
-    <!-- Loja de Musicas -->
+    <!-- Loja de Músicas -->
     <div id="music-shop" class="shop-overlay">
         <div class="shop-box">
-            <h2 class="shop-title">Loja de Musicas</h2>
+            <h2 class="shop-title">Loja de Músicas</h2>
             <div class="shop-items" id="lista-musicas"></div>
             <button class="shop-close-btn" onclick="fecharLojaMusicas()">Fechar</button>
         </div>
     </div>
 
-    <!-- Botao flutuante: Musicas -->
-    <button class="floating-music-btn" onclick="abrirLojaMusicas()" aria-label="Abrir loja de musicas">
-        <img src="assets/items/caixadesom.png" alt="Loja de Musicas">
+    <!-- Botão flutuante: Músicas -->
+    <button class="floating-music-btn" onclick="abrirLojaMusicas()" aria-label="Abrir loja de músicas">
+        <img src="assets/items/caixadesom.png" alt="Loja de Músicas">
     </button>
 
-    <!-- Botao flutuante: Rebirth -->
+    <!-- Botão flutuante: Rebirth -->
     <button id="rebirth-float-btn" class="rebirth-float-btn" onclick="tentarRebirth()" aria-label="Fazer rebirth">
         <img src="assets/items/KanyeButton.png" alt="Rebirth">
     </button>

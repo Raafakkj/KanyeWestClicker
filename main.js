@@ -1,5 +1,6 @@
-const TARGET_POINTS = 67;
+﻿const TARGET_POINTS = 67;
 const SHOP_PRICE_MULTIPLIER = 1.65;
+const UPGRADE_PRICE_MULTIPLIER = 1.9;
 const SAVE_KEY = "kanye_clicker_save_v4";
 const LEADERBOARD_API = "/api/leaderboard";
 const LEADERBOARD_SEED_URL = "leaderboard.json";
@@ -17,7 +18,38 @@ const REBIRTH_COST_MULTIPLIER = 2.05;
 const REBIRTH_BONUS_PER_LEVEL = 12;
 const POINTER_SVG_PATH = "assets/items/pointer.svg";
 const DEFAULT_MUSIC_VOLUME = 0.45;
+const DEFAULT_CLICK_SFX_ENABLED = true;
+const XP_BASE_REQUIREMENT = 25;
+const XP_LEVEL_GROWTH = 1.28;
+const CLICK_POP_AUDIO_PATH = "assets/music/pop.mp3";
+const CLICK_POP_VOLUME = 0.55;
+const CASH_SFX_AUDIO_PATH = "assets/music/cash.mp3";
+const CASH_SFX_VOLUME = 0.72;
+const ERROR_SFX_AUDIO_PATH = "assets/music/error.mp3";
+const ERROR_SFX_VOLUME = 0.78;
+const EVENT_SCRATCH_VOLUME = 0.82;
 const LEADERBOARD_AUTO_SYNC_MS = 12000;
+const DOUBLE_EVENT_MULTIPLIER = 2;
+const DOUBLE_EVENT_DURATION_MS = 30000;
+const DOUBLE_EVENT_MIN_INTERVAL_MS = 70000;
+const DOUBLE_EVENT_MAX_INTERVAL_MS = 140000;
+const GOLDEN_CLICK_MIN_INTERVAL_MS = 35000;
+const GOLDEN_CLICK_MAX_INTERVAL_MS = 95000;
+const GOLDEN_CLICK_VISIBLE_MS = 16000;
+const GOLDEN_CLICK_MIN_REWARD = 600;
+const EVENT_SCRATCH_AUDIO_PATH = "assets/music/scratch.mp3";
+// Defina aqui a imagem fixa do golden click.
+const GOLDEN_CLICK_IMAGE = "assets/kanye/kanyeRunaway.jpg";
+const GOLDEN_CLICK_KANYE_IMAGES = [
+    "assets/kanye/41-414314_transparent-kanye-head-png-kanye-west-head-png.png",
+    "assets/kanye/48bb3318d8ae27f31eba3f1db412d15d.752x752x1.jpg",
+    "assets/kanye/https___hypebeast.com_image_2017_09_kanye-west-debuts-new-adidas-yeezy-boost-700-wave-runners-0001.avif",
+    "assets/kanye/images (1).jpg",
+    "assets/kanye/Kanye-West-Yeezy-Season-3-tlop-msg-2016-billboard-650.webp",
+    "assets/kanye/kanye-west.gif",
+    "assets/kanye/kanyeRunaway.jpg",
+    "assets/kanye/maxresdefault.jpg"
+];
 const LEADERBOARD_DEFAULT_SCORES = [
     {
         nome: "KanyeFan",
@@ -101,6 +133,33 @@ const SHOP_ITEMS = [
     }
 ];
 
+const SPECIAL_UPGRADES = [
+    {
+        id: "auto_speed",
+        nome: "Clock Boost",
+        descricao: "Autoclick mais rÃ¡pido",
+        precoBase: 1800,
+        valorPercent: 12,
+        maxNivel: 8
+    },
+    {
+        id: "global_gain",
+        nome: "Hype Engine",
+        descricao: "Aumenta o ganho total",
+        precoBase: 2600,
+        valorPercent: 10,
+        maxNivel: 10
+    },
+    {
+        id: "xp_click",
+        nome: "Academia de Flow",
+        descricao: "Aumenta o XP ganho por clique manual",
+        precoBase: 3200,
+        valorPercent: 1,
+        maxNivel: 12
+    }
+];
+
 const SKINS = [
     {
         id: 1,
@@ -159,7 +218,7 @@ const MUSIC_TRACKS = [
         nome: "Silencio",
         preco: 0,
         bonus: 0,
-        descricao: "Sem bonus de musica",
+        descricao: "Sem bÃ´nus de mÃºsica",
         audio: ""
     },
     {
@@ -308,37 +367,48 @@ const SKIN_COLOR_THEMES = {
 };
 
 const ACHIEVEMENTS = [
-    { id: 1, nome: "Eu sou Deus", descricao: "Chegue a 67 pontos", tipo: "points", meta: 67 },
+    { id: 1, nome: "Eu sou Deus", descricao: "Chegue a 67 pontos", tipo: "points", meta: 67, recompensa: { pontos: 50 } },
     { id: 2, nome: "Warm Up", descricao: "Chegue a 250 pontos", tipo: "points", meta: 250 },
-    { id: 3, nome: "Dropout", descricao: "Chegue a 500 pontos", tipo: "points", meta: 500 },
+    { id: 3, nome: "Dropout", descricao: "Chegue a 500 pontos", tipo: "points", meta: 500, recompensa: { pontos: 120 } },
     { id: 4, nome: "Graduation", descricao: "Chegue a 1.000 pontos", tipo: "points", meta: 1000 },
-    { id: 5, nome: "Superstar", descricao: "Chegue a 2.500 pontos", tipo: "points", meta: 2500 },
+    { id: 5, nome: "Superstar", descricao: "Chegue a 2.500 pontos", tipo: "points", meta: 2500, recompensa: { pontos: 300 } },
     { id: 6, nome: "Headliner", descricao: "Chegue a 5.000 pontos", tipo: "points", meta: 5000 },
-    { id: 7, nome: "Legend", descricao: "Chegue a 10.000 pontos", tipo: "points", meta: 10000 },
-    { id: 8, nome: "Untouchable", descricao: "Chegue a 25.000 pontos", tipo: "points", meta: 25000 },
+    { id: 7, nome: "Legend", descricao: "Chegue a 10.000 pontos", tipo: "points", meta: 10000, recompensa: { pontos: 800 } },
+    { id: 8, nome: "Untouchable", descricao: "Chegue a 25.000 pontos", tipo: "points", meta: 25000, recompensa: { pontos: 2000 } },
+    { id: 27, nome: "Runaway Rich", descricao: "Chegue a 50.000 pontos", tipo: "points", meta: 50000, recompensa: { pontos: 5000 } },
+    { id: 28, nome: "Billionaire Mindset", descricao: "Chegue a 100.000 pontos", tipo: "points", meta: 100000, recompensa: { pontos: 12000 } },
 
     { id: 9, nome: "First Steps", descricao: "Faca 100 cliques", tipo: "clicks", meta: 100 },
-    { id: 10, nome: "Hand Cramp", descricao: "Faca 500 cliques", tipo: "clicks", meta: 500 },
+    { id: 10, nome: "Hand Cramp", descricao: "Faca 500 cliques", tipo: "clicks", meta: 500, recompensa: { pontos: 180 } },
     { id: 11, nome: "No Breaks", descricao: "Faca 1.500 cliques", tipo: "clicks", meta: 1500 },
-    { id: 12, nome: "Machine Hands", descricao: "Faca 5.000 cliques", tipo: "clicks", meta: 5000 },
+    { id: 12, nome: "Machine Hands", descricao: "Faca 5.000 cliques", tipo: "clicks", meta: 5000, recompensa: { pontos: 900 } },
+    { id: 29, nome: "Finger Frenzy", descricao: "Faca 10.000 cliques", tipo: "clicks", meta: 10000, recompensa: { pontos: 1800 } },
 
     { id: 13, nome: "Automation", descricao: "Tenha 10 pontos/s", tipo: "passive", meta: 10 },
-    { id: 14, nome: "Factory", descricao: "Tenha 50 pontos/s", tipo: "passive", meta: 50 },
+    { id: 14, nome: "Factory", descricao: "Tenha 50 pontos/s", tipo: "passive", meta: 50, recompensa: { pontos: 250 } },
     { id: 15, nome: "Industry", descricao: "Tenha 200 pontos/s", tipo: "passive", meta: 200 },
-    { id: 16, nome: "Mega Label", descricao: "Tenha 500 pontos/s", tipo: "passive", meta: 500 },
+    { id: 16, nome: "Mega Label", descricao: "Tenha 500 pontos/s", tipo: "passive", meta: 500, recompensa: { pontos: 1200 } },
+    { id: 30, nome: "Streaming Empire", descricao: "Tenha 1.000 pontos/s", tipo: "passive", meta: 1000, recompensa: { pontos: 3500 } },
 
     { id: 17, nome: "Auto Nation", descricao: "Compre 5 Auto Clickers", tipo: "item_quantity", itemId: "auto_clicker", meta: 5 },
-    { id: 18, nome: "Studio Mogul", descricao: "Compre 10 Studio Teams", tipo: "item_quantity", itemId: "studio_team", meta: 10 },
+    { id: 18, nome: "Studio Mogul", descricao: "Compre 10 Studio Teams", tipo: "item_quantity", itemId: "studio_team", meta: 10, recompensa: { pontos: 350 } },
     { id: 19, nome: "Tour Master", descricao: "Compre 8 Tour Bus", tipo: "item_quantity", itemId: "tour_bus", meta: 8 },
-    { id: 20, nome: "Click God", descricao: "Compre 10 Click +5", tipo: "item_quantity", itemId: "click_plus", meta: 10 },
+    { id: 20, nome: "Click God", descricao: "Compre 10 Click +5", tipo: "item_quantity", itemId: "click_plus", meta: 10, recompensa: { pontos: 420 } },
+    { id: 31, nome: "Farm Lord", descricao: "Compre 6 Stream Farms", tipo: "item_quantity", itemId: "stream_farm", meta: 6, recompensa: { pontos: 1500 } },
+    { id: 32, nome: "Campaign Machine", descricao: "Compre 6 Yeezy Campaigns", tipo: "item_quantity", itemId: "yeezy_campaign", meta: 6, recompensa: { pontos: 1800 } },
 
     { id: 21, nome: "Fashion Week", descricao: "Compre 3 skins", tipo: "skins_owned", meta: 3 },
-    { id: 22, nome: "Wardrobe", descricao: "Compre 5 skins", tipo: "skins_owned", meta: 5 },
+    { id: 22, nome: "Wardrobe", descricao: "Compre 5 skins", tipo: "skins_owned", meta: 5, recompensa: { pontos: 500 } },
     { id: 23, nome: "Style Icon", descricao: "Use bonus de skin +20%", tipo: "skin_bonus", meta: 20 },
-    { id: 24, nome: "Fashion Empire", descricao: "Use bonus de skin +35%", tipo: "skin_bonus", meta: 35 },
+    { id: 24, nome: "Fashion Empire", descricao: "Use bonus de skin +35%", tipo: "skin_bonus", meta: 35, recompensa: { pontos: 1000 } },
+    { id: 33, nome: "Collector Cut", descricao: "Desbloqueie 5 mÃºsicas", tipo: "musics_owned", meta: 5, recompensa: { pontos: 2200 } },
 
     { id: 25, nome: "Ranked", descricao: "Salve 1 score na leaderboard", tipo: "leaderboard_entries", meta: 1 },
-    { id: 26, nome: "Competition", descricao: "Tenha 5 scores na leaderboard", tipo: "leaderboard_entries", meta: 5 }
+    { id: 26, nome: "Competition", descricao: "Tenha 5 scores na leaderboard", tipo: "leaderboard_entries", meta: 5, recompensa: { pontos: 800 } },
+    { id: 34, nome: "Reborn", descricao: "Faca 1 rebirth", tipo: "rebirths", meta: 1, recompensa: { pontos: 2000 } },
+    { id: 35, nome: "Phoenix Loop", descricao: "Faca 3 rebirths", tipo: "rebirths", meta: 3, recompensa: { pontos: 7000 } },
+    { id: 36, nome: "Golden Hunter", descricao: "Colete 5 golden clicks", tipo: "golden_clicks", meta: 5, recompensa: { pontos: 1500 } },
+    { id: 37, nome: "Upgrade Fanatic", descricao: "Compre 8 boosts especiais", tipo: "special_upgrades", meta: 8, recompensa: { pontos: 1800 } }
 ];
 
 let gameState = createDefaultGameState();
@@ -349,26 +419,43 @@ let musicPlayer = null;
 let currentPlayingMusicId = 0;
 let leaderboardAutoSyncInterval = null;
 let leaderboardSyncInProgress = false;
+let doubleEventActive = false;
+let doubleEventEndsAt = 0;
+let doubleEventTickInterval = null;
+let doubleEventStartTimeout = null;
+let goldenClickVisible = false;
+let goldenClickSpawnTimeout = null;
+let goldenClickHideTimeout = null;
+let eventSfxPlayer = null;
+let pendingRebirthGain = 0;
+const activeClickSfxPlayers = new Set();
+let collectedGoldenClicks = 0;
 
 function createDefaultGameState() {
     const shop = createDefaultShopState();
+    const upgrades = createDefaultUpgradesState();
     const skins = createDefaultSkinsState();
     const musics = createDefaultMusicsState();
 
     return {
         nickname: gerarNicknamePadrao(),
         musicVolume: DEFAULT_MUSIC_VOLUME,
+        clickSfxEnabled: DEFAULT_CLICK_SFX_ENABLED,
         leaderboardRegistered: false,
         leaderboardBestScore: 0,
         points: 0,
         totalClicks: 0,
+        xpLevel: 1,
+        xpCurrent: 0,
         shop,
+        upgrades,
         skins,
         musics,
         currentSkinId: 1,
         currentMusicId: 1,
         rebirthCount: 0,
         unlockedAchievements: [],
+        claimedAchievementRewards: [],
         targetAlertShown: false
     };
 }
@@ -382,6 +469,17 @@ function createDefaultShopState() {
         };
     });
     return shop;
+}
+
+function createDefaultUpgradesState() {
+    const upgrades = {};
+    SPECIAL_UPGRADES.forEach((upgrade) => {
+        upgrades[upgrade.id] = {
+            nivel: 0,
+            preco: upgrade.precoBase
+        };
+    });
+    return upgrades;
 }
 
 function gerarNicknamePadrao() {
@@ -416,6 +514,29 @@ function safeNumber(value, fallback = 0) {
 
 function clampVolumePercent(value) {
     return Math.min(1, Math.max(0, safeNumber(value, DEFAULT_MUSIC_VOLUME)));
+}
+
+function formatMultiplier(multiplier) {
+    return safeNumber(multiplier, 1).toFixed(2).replace(".", ",");
+}
+
+function randomRange(min, max) {
+    const safeMin = Math.floor(safeNumber(min, 0));
+    const safeMax = Math.floor(safeNumber(max, safeMin));
+    const start = Math.min(safeMin, safeMax);
+    const end = Math.max(safeMin, safeMax);
+    return Math.floor(Math.random() * ((end - start) + 1)) + start;
+}
+
+function getEventMultiplier() {
+    return doubleEventActive ? DOUBLE_EVENT_MULTIPLIER : 1;
+}
+
+function getDoubleEventSecondsLeft() {
+    if (!doubleEventActive) {
+        return 0;
+    }
+    return Math.max(0, Math.ceil((doubleEventEndsAt - Date.now()) / 1000));
 }
 
 function getLeaderboardNickname() {
@@ -521,9 +642,9 @@ async function tocarMusicaPorId(musicId, fromUserAction = false) {
         return true;
     } catch (error) {
         if (fromUserAction) {
-            alert(`Nao foi possivel tocar ${music.nome}. Confirme o arquivo em ${music.audio}.`);
+            alert(`NÃ£o foi possÃ­vel tocar ${music.nome}. Confirme o arquivo em ${music.audio}.`);
         } else {
-            console.warn(`Nao foi possivel iniciar ${music.nome} automaticamente.`, error);
+            console.warn(`NÃ£o foi possÃ­vel iniciar ${music.nome} automaticamente.`, error);
         }
         return false;
     }
@@ -539,6 +660,81 @@ function sincronizarMusicaAtiva(fromUserAction = false) {
     tocarMusicaPorId(currentMusic.id, fromUserAction);
 }
 
+function tocarSomEventoDouble() {
+    if (!eventSfxPlayer) {
+        eventSfxPlayer = new Audio(EVENT_SCRATCH_AUDIO_PATH);
+        eventSfxPlayer.preload = "auto";
+    }
+
+    eventSfxPlayer.currentTime = 0;
+    eventSfxPlayer.volume = EVENT_SCRATCH_VOLUME;
+    eventSfxPlayer.play().catch((error) => {
+        console.warn("NÃ£o foi possÃ­vel tocar o som do evento x2.", error);
+    });
+}
+
+function tocarSomCliquePop() {
+    if (!gameState.clickSfxEnabled) {
+        return;
+    }
+
+    const clickSfx = new Audio(CLICK_POP_AUDIO_PATH);
+    clickSfx.volume = CLICK_POP_VOLUME;
+    activeClickSfxPlayers.add(clickSfx);
+
+    const finalizar = () => {
+        activeClickSfxPlayers.delete(clickSfx);
+    };
+    clickSfx.addEventListener("ended", finalizar, { once: true });
+    clickSfx.addEventListener("error", finalizar, { once: true });
+
+    clickSfx.play().catch(() => {
+        finalizar();
+    });
+}
+
+function tocarSomCompraCash() {
+    const cashSfx = new Audio(CASH_SFX_AUDIO_PATH);
+    cashSfx.volume = CASH_SFX_VOLUME;
+
+    cashSfx.play().catch((error) => {
+        console.warn("NÃ£o foi possÃ­vel tocar o som de compra.", error);
+    });
+}
+
+function tocarSomErroCompra() {
+    const errorSfx = new Audio(ERROR_SFX_AUDIO_PATH);
+    errorSfx.volume = ERROR_SFX_VOLUME;
+
+    errorSfx.play().catch((error) => {
+        console.warn("NÃ£o foi possÃ­vel tocar o som de erro de compra.", error);
+    });
+}
+
+function sinalizarBotaoCompraInvalida(buttonEl) {
+    if (!buttonEl) {
+        return;
+    }
+
+    if (buttonEl._invalidPurchaseTimeoutId) {
+        clearTimeout(buttonEl._invalidPurchaseTimeoutId);
+    }
+
+    buttonEl.classList.remove("purchase-error");
+    // Reinicia a animaÃ§Ã£o para funcionar em cliques consecutivos.
+    void buttonEl.offsetWidth;
+    buttonEl.classList.add("purchase-error");
+    buttonEl._invalidPurchaseTimeoutId = setTimeout(() => {
+        buttonEl.classList.remove("purchase-error");
+        buttonEl._invalidPurchaseTimeoutId = null;
+    }, 1800);
+}
+
+function tratarCompraInvalida(buttonEl) {
+    tocarSomErroCompra();
+    sinalizarBotaoCompraInvalida(buttonEl);
+}
+
 function getRebirthRequirement(rebirthCount = gameState.rebirthCount) {
     return Math.max(1, Math.floor(REBIRTH_BASE_COST * Math.pow(REBIRTH_COST_MULTIPLIER, rebirthCount)));
 }
@@ -548,11 +744,217 @@ function getRebirthBonusPercent() {
 }
 
 function getTotalBonusPercent() {
-    return getSkinBonusPercent() + getMusicBonusPercent() + getRebirthBonusPercent();
+    return getSkinBonusPercent() + getMusicBonusPercent() + getRebirthBonusPercent() + getGlobalGainUpgradePercent();
 }
 
 function getGainMultiplier() {
-    return 1 + (getTotalBonusPercent() / 100);
+    return (1 + (getTotalBonusPercent() / 100)) * getEventMultiplier();
+}
+
+function limparTickEventoDouble() {
+    if (doubleEventTickInterval) {
+        clearInterval(doubleEventTickInterval);
+        doubleEventTickInterval = null;
+    }
+}
+
+function agendarProximoEventoDouble() {
+    if (doubleEventStartTimeout) {
+        clearTimeout(doubleEventStartTimeout);
+    }
+
+    const delay = randomRange(DOUBLE_EVENT_MIN_INTERVAL_MS, DOUBLE_EVENT_MAX_INTERVAL_MS);
+    doubleEventStartTimeout = setTimeout(() => {
+        iniciarEventoDouble();
+    }, delay);
+}
+
+function encerrarEventoDouble() {
+    if (!doubleEventActive) {
+        return;
+    }
+
+    doubleEventActive = false;
+    doubleEventEndsAt = 0;
+    document.body.classList.remove("double-event-rgb");
+    tocarSomEventoDouble();
+    limparTickEventoDouble();
+    atualizarPontos();
+    mostrarAnimacaoCompra("Evento x2 encerrou.");
+    agendarProximoEventoDouble();
+}
+
+function iniciarEventoDouble() {
+    if (doubleEventActive) {
+        return;
+    }
+
+    doubleEventActive = true;
+    doubleEventEndsAt = Date.now() + DOUBLE_EVENT_DURATION_MS;
+    document.body.classList.add("double-event-rgb");
+    tocarSomEventoDouble();
+    mostrarAnimacaoCompra("Evento relampago: x2 por 30s!");
+    atualizarPontos();
+    limparTickEventoDouble();
+
+    doubleEventTickInterval = setInterval(() => {
+        if (Date.now() >= doubleEventEndsAt) {
+            encerrarEventoDouble();
+            return;
+        }
+        atualizarBuffsHUD();
+    }, 250);
+}
+
+function getGoldenButton() {
+    let button = document.getElementById("golden-click");
+    if (button) {
+        return button;
+    }
+
+    const container = document.querySelector(".clicker-container");
+    if (!container) {
+        return null;
+    }
+
+    button = document.createElement("button");
+    button.id = "golden-click";
+    button.className = "golden-click-btn";
+    button.type = "button";
+    button.setAttribute("aria-label", "Golden click raro");
+    button.addEventListener("click", coletarGoldenClick);
+
+    container.appendChild(button);
+    return button;
+}
+
+function getGoldenClickImagePath() {
+    const imagemFixa = String(GOLDEN_CLICK_IMAGE || "").trim();
+    if (imagemFixa) {
+        return imagemFixa;
+    }
+
+    const index = Math.floor(Math.random() * GOLDEN_CLICK_KANYE_IMAGES.length);
+    return GOLDEN_CLICK_KANYE_IMAGES[index] || GOLDEN_CLICK_KANYE_IMAGES[0];
+}
+
+function posicionarGoldenClick() {
+    const container = document.querySelector(".clicker-container");
+    const kanye = document.getElementById("kanye");
+    const button = getGoldenButton();
+    if (!container || !kanye || !button) {
+        return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const kanyeRect = kanye.getBoundingClientRect();
+    const size = button.offsetWidth || 84;
+    const centerX = (kanyeRect.left - containerRect.left) + (kanyeRect.width / 2);
+    const centerY = (kanyeRect.top - containerRect.top) + (kanyeRect.height / 2);
+    const radius = Math.max(124, (Math.min(kanyeRect.width, kanyeRect.height) * 0.64));
+    const angle = Math.random() * (Math.PI * 2);
+    const left = Math.max(8, Math.min(containerRect.width - size - 8, centerX + (Math.cos(angle) * radius) - (size / 2)));
+    const top = Math.max(8, Math.min(containerRect.height - size - 8, centerY + (Math.sin(angle) * radius) - (size / 2)));
+
+    button.style.left = `${left}px`;
+    button.style.top = `${top}px`;
+}
+
+function agendarProximoGoldenClick() {
+    if (goldenClickSpawnTimeout) {
+        clearTimeout(goldenClickSpawnTimeout);
+    }
+
+    const delay = randomRange(GOLDEN_CLICK_MIN_INTERVAL_MS, GOLDEN_CLICK_MAX_INTERVAL_MS);
+    goldenClickSpawnTimeout = setTimeout(() => {
+        mostrarGoldenClick();
+    }, delay);
+}
+
+function esconderGoldenClick(foiColetado = false) {
+    if (goldenClickHideTimeout) {
+        clearTimeout(goldenClickHideTimeout);
+        goldenClickHideTimeout = null;
+    }
+
+    const button = getGoldenButton();
+    if (button) {
+        button.classList.remove("show");
+        button.setAttribute("aria-hidden", "true");
+    }
+
+    goldenClickVisible = false;
+    atualizarBuffsHUD();
+
+    if (!foiColetado) {
+        agendarProximoGoldenClick();
+    }
+}
+
+function mostrarGoldenClick() {
+    if (goldenClickVisible) {
+        return;
+    }
+
+    const button = getGoldenButton();
+    if (!button) {
+        agendarProximoGoldenClick();
+        return;
+    }
+
+    goldenClickVisible = true;
+    button.style.backgroundImage = `url("${getGoldenClickImagePath()}")`;
+    posicionarGoldenClick();
+    button.classList.add("show");
+    button.removeAttribute("aria-hidden");
+    mostrarAnimacaoCompra("Golden click apareceu!");
+    atualizarBuffsHUD();
+
+    if (goldenClickHideTimeout) {
+        clearTimeout(goldenClickHideTimeout);
+    }
+    goldenClickHideTimeout = setTimeout(() => {
+        esconderGoldenClick(false);
+    }, GOLDEN_CLICK_VISIBLE_MS);
+}
+
+function getGoldenClickBaseReward() {
+    const clickPower = getClickPower();
+    const passive = getPassivePerSecond();
+    const scaledReward = Math.floor((clickPower * 55) + (passive * 24));
+    return Math.max(GOLDEN_CLICK_MIN_REWARD, scaledReward);
+}
+
+function coletarGoldenClick() {
+    if (!goldenClickVisible) {
+        return;
+    }
+
+    const recompensaBase = getGoldenClickBaseReward();
+    const ganhoTotal = adicionarPontos(recompensaBase);
+    gameState.totalClicks += 1;
+    collectedGoldenClicks += 1;
+
+    esconderGoldenClick(true);
+    agendarProximoGoldenClick();
+    atualizarPontos();
+    checkTarget();
+    verificarConquistas();
+    saveGameState();
+
+    mostrarAnimacaoCompra(`Golden click! +${formatNumber(ganhoTotal)} pontos`);
+}
+
+function atualizarPosicaoEventosVisuais() {
+    if (goldenClickVisible) {
+        posicionarGoldenClick();
+    }
+}
+
+function iniciarEventosAleatorios() {
+    getGoldenButton();
+    agendarProximoEventoDouble();
+    agendarProximoGoldenClick();
 }
 
 function getClickPower() {
@@ -575,8 +977,80 @@ function getPassivePerSecond() {
     return passive;
 }
 
+function getUpgradeLevel(upgradeId) {
+    const state = gameState.upgrades && gameState.upgrades[upgradeId];
+    return Math.max(0, Math.floor(safeNumber(state ? state.nivel : 0, 0)));
+}
+
+function getAutoSpeedBonusPercent() {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === "auto_speed");
+    if (!upgrade) {
+        return 0;
+    }
+    return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getGlobalGainUpgradePercent() {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === "global_gain");
+    if (!upgrade) {
+        return 0;
+    }
+    return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getXpGainPerClickUpgradeValue() {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === "xp_click");
+    if (!upgrade) {
+        return 0;
+    }
+    return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getAutoClickIntervalMs() {
+    const speedBonus = getAutoSpeedBonusPercent();
+    const speedMultiplier = 1 + (speedBonus / 100);
+    return Math.max(120, Math.floor(1000 / speedMultiplier));
+}
+
 function getTotalOwnedItems() {
     return SHOP_ITEMS.reduce((acc, item) => acc + gameState.shop[item.id].quantidade, 0);
+}
+
+function getXpRequiredForLevel(level = gameState.xpLevel) {
+    const safeLevel = Math.max(1, Math.floor(safeNumber(level, 1)));
+    return Math.max(10, Math.floor(XP_BASE_REQUIREMENT * (XP_LEVEL_GROWTH ** (safeLevel - 1))));
+}
+
+function adicionarXpPorClique(amount = 1) {
+    let xpToAdd = Math.max(0, Math.floor(safeNumber(amount, 0)));
+    if (xpToAdd <= 0) {
+        return;
+    }
+
+    gameState.xpLevel = Math.max(1, Math.floor(safeNumber(gameState.xpLevel, 1)));
+    gameState.xpCurrent = Math.max(0, Math.floor(safeNumber(gameState.xpCurrent, 0)));
+
+    while (xpToAdd > 0) {
+        const required = getXpRequiredForLevel(gameState.xpLevel);
+        const faltando = Math.max(1, required - gameState.xpCurrent);
+        const ganho = Math.min(xpToAdd, faltando);
+
+        gameState.xpCurrent += ganho;
+        xpToAdd -= ganho;
+
+        if (gameState.xpCurrent >= required) {
+            gameState.xpCurrent -= required;
+            gameState.xpLevel += 1;
+        }
+    }
+}
+
+function getDescricaoBonusUpgrade(upgrade, level) {
+    const bonusAtual = formatNumber(level * upgrade.valorPercent);
+    if (upgrade.id === "xp_click") {
+        return `XP por clique atual: +${bonusAtual}`;
+    }
+    return `BÃƒÂ´nus atual: +${bonusAtual}%`;
 }
 
 function calcularRebirthsPossiveisComPontos(pointsValue, rebirthCountBase = gameState.rebirthCount) {
@@ -605,14 +1079,14 @@ function atualizarRebirthUI() {
 
     const statusEl = document.getElementById("rebirth-status");
     if (statusEl) {
-        statusEl.textContent = `Rebirths: ${formatNumber(gameState.rebirthCount)} | Bonus: +${formatNumber(bonusPercent)}%`;
+        statusEl.textContent = `Rebirths: ${formatNumber(gameState.rebirthCount)} | BÃ´nus: +${formatNumber(bonusPercent)}%`;
     }
 
     const nextEl = document.getElementById("rebirth-next");
     if (nextEl) {
         nextEl.textContent = rebirthsPossiveis > 0
             ? `Pronto para rebirth: +${formatNumber(rebirthsPossiveis)} agora`
-            : `Proximo em ${formatNumber(requirement)} pontos`;
+            : `PrÃ³ximo em ${formatNumber(requirement)} pontos`;
     }
 
     const floatButton = document.getElementById("rebirth-float-btn");
@@ -624,6 +1098,7 @@ function atualizarRebirthUI() {
 function resetarProgressaoParaRebirth() {
     gameState.points = 0;
     gameState.shop = createDefaultShopState();
+    gameState.upgrades = createDefaultUpgradesState();
     gameState.skins = createDefaultSkinsState();
     gameState.currentSkinId = 1;
     gameState.unlockedAchievements = [];
@@ -636,26 +1111,41 @@ function resetarProgressaoParaRebirth() {
 function tentarRebirth() {
     const rebirthsGanhos = calcularRebirthsPossiveisComPontos(gameState.points);
     if (rebirthsGanhos <= 0) {
-        alert(`Voce precisa de ${formatNumber(getRebirthRequirement())} pontos para fazer rebirth.`);
+        alert(`VocÃª precisa de ${formatNumber(getRebirthRequirement())} pontos para fazer rebirth.`);
         return;
     }
 
     const bonusAtual = getRebirthBonusPercent();
     const bonusNovo = bonusAtual + (rebirthsGanhos * REBIRTH_BONUS_PER_LEVEL);
+    pendingRebirthGain = rebirthsGanhos;
 
-    const confirmar = confirm(
-        `Fazer rebirth agora?\n\n` +
-        `Voce ganhara ${rebirthsGanhos} rebirth(s).\n` +
-        `Bonus permanente: +${bonusAtual}% -> +${bonusNovo}%.\n\n` +
-        `Isso vai resetar pontos, itens da loja, skins e conquistas.`
-    );
+    const summary = document.getElementById("rebirth-confirm-summary");
+    if (summary) {
+        summary.textContent =
+            `VocÃª ganharÃ¡ ${formatNumber(rebirthsGanhos)} rebirth(s). BÃ´nus: +${formatNumber(bonusAtual)}% -> +${formatNumber(bonusNovo)}%.`;
+    }
 
-    if (!confirmar) {
+    document.getElementById("rebirth-confirm").style.display = "flex";
+}
+
+function fecharConfirmacaoRebirth() {
+    pendingRebirthGain = 0;
+    const modal = document.getElementById("rebirth-confirm");
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+function confirmarRebirth() {
+    const rebirthsGanhos = Math.max(0, Math.floor(safeNumber(pendingRebirthGain, 0)));
+    if (rebirthsGanhos <= 0) {
+        fecharConfirmacaoRebirth();
         return;
     }
 
     gameState.rebirthCount += rebirthsGanhos;
     resetarProgressaoParaRebirth();
+    fecharConfirmacaoRebirth();
 
     renderShop();
     renderizarSkins();
@@ -666,7 +1156,7 @@ function tentarRebirth() {
     verificarConquistas();
     saveGameState();
 
-    mostrarAnimacaoCompra(`Rebirth +${rebirthsGanhos}! Bonus permanente aumentado.`);
+    mostrarAnimacaoCompra(`Rebirth +${rebirthsGanhos}! BÃ´nus permanente aumentado.`);
 }
 
 function adicionarPontos(baseAmount) {
@@ -679,7 +1169,7 @@ function saveGameState() {
     try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
     } catch (error) {
-        console.error("Nao foi possivel salvar o progresso.", error);
+        console.error("NÃ£o foi possÃ­vel salvar o progresso.", error);
     }
 }
 
@@ -702,11 +1192,15 @@ function loadGameState() {
         const loadedNickname = normalizarNome(parsed.nickname);
         defaultState.nickname = loadedNickname || gerarNicknamePadrao();
         defaultState.musicVolume = clampVolumePercent(safeNumber(parsed.musicVolume, DEFAULT_MUSIC_VOLUME));
+        defaultState.clickSfxEnabled = parsed.clickSfxEnabled !== false;
         defaultState.leaderboardRegistered = Boolean(parsed.leaderboardRegistered);
         defaultState.leaderboardBestScore = Math.max(0, Math.floor(safeNumber(parsed.leaderboardBestScore, 0)));
 
         defaultState.points = Math.max(0, Math.floor(safeNumber(parsed.points, 0)));
         defaultState.totalClicks = Math.max(0, Math.floor(safeNumber(parsed.totalClicks, 0)));
+        defaultState.xpLevel = Math.max(1, Math.floor(safeNumber(parsed.xpLevel, 1)));
+        const xpMax = getXpRequiredForLevel(defaultState.xpLevel);
+        defaultState.xpCurrent = Math.max(0, Math.min(xpMax - 1, Math.floor(safeNumber(parsed.xpCurrent, 0))));
         defaultState.rebirthCount = Math.max(0, Math.floor(safeNumber(parsed.rebirthCount, 0)));
         defaultState.targetAlertShown = Boolean(parsed.targetAlertShown);
 
@@ -716,6 +1210,21 @@ function loadGameState() {
                 const quantidade = Math.max(0, Math.floor(safeNumber(loadedItem.quantidade, 0)));
                 const preco = Math.max(item.precoBase, Math.floor(safeNumber(loadedItem.preco, item.precoBase)));
                 defaultState.shop[item.id] = { quantidade, preco };
+            });
+        }
+
+        if (parsed.upgrades && typeof parsed.upgrades === "object") {
+            SPECIAL_UPGRADES.forEach((upgrade) => {
+                const loadedUpgrade = parsed.upgrades[upgrade.id] || {};
+                const nivel = Math.min(
+                    upgrade.maxNivel,
+                    Math.max(0, Math.floor(safeNumber(loadedUpgrade.nivel, 0)))
+                );
+                const preco = Math.max(
+                    upgrade.precoBase,
+                    Math.floor(safeNumber(loadedUpgrade.preco, upgrade.precoBase))
+                );
+                defaultState.upgrades[upgrade.id] = { nivel, preco };
             });
         }
 
@@ -747,6 +1256,13 @@ function loadGameState() {
         if (Array.isArray(parsed.unlockedAchievements)) {
             const valid = new Set(ACHIEVEMENTS.map((a) => a.id));
             defaultState.unlockedAchievements = parsed.unlockedAchievements
+                .map((id) => Math.floor(safeNumber(id, 0)))
+                .filter((id) => valid.has(id));
+        }
+
+        if (Array.isArray(parsed.claimedAchievementRewards)) {
+            const valid = new Set(ACHIEVEMENTS.map((a) => a.id));
+            defaultState.claimedAchievementRewards = parsed.claimedAchievementRewards
                 .map((id) => Math.floor(safeNumber(id, 0)))
                 .filter((id) => valid.has(id));
         }
@@ -792,7 +1308,7 @@ function saveLeaderboardCache() {
     try {
         localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(leaderboardData));
     } catch (error) {
-        console.error("Nao foi possivel salvar leaderboard local.", error);
+        console.error("NÃ£o foi possÃ­vel salvar leaderboard local.", error);
     }
 }
 
@@ -821,7 +1337,7 @@ async function carregarLeaderboardLocal() {
             scores: sanitizeLeaderboardEntries(data.scores)
         };
     } catch (error) {
-        console.warn("Nao foi possivel carregar leaderboard.json. Usando seed interna.", error);
+        console.warn("NÃ£o foi possÃ­vel carregar leaderboard.json. Usando seed interna.", error);
         leaderboardData = {
             scores: sanitizeLeaderboardEntries(LEADERBOARD_DEFAULT_SCORES)
         };
@@ -911,6 +1427,8 @@ function atualizarCentroPonteiros() {
         pointer.style.setProperty("--center-y", `${metrics.y}px`);
         pointer.style.setProperty("--radius", `${orbitRadius}px`);
     });
+
+    atualizarPosicaoEventosVisuais();
 }
 
 function criarPointer(indice, totalPointers) {
@@ -955,34 +1473,69 @@ function mostrarAnimacaoCompra(mensagem) {
     setTimeout(() => anim.remove(), 1500);
 }
 
+function mostrarFeedbackPontos(quantidade, origem = "manual") {
+    const valor = Math.max(0, Math.floor(safeNumber(quantidade, 0)));
+    if (valor <= 0) {
+        return;
+    }
+
+    const metrics = getKanyeButtonMetrics();
+    const spread = origem === "auto" ? 88 : 62;
+    const offsetX = (Math.random() * (spread * 2)) - spread;
+    const offsetY = -12 - (Math.random() * 34);
+
+    const feedback = document.createElement("div");
+    feedback.className = `click-gain-feedback ${origem === "auto" ? "auto" : "manual"}`;
+    feedback.textContent = `+${formatNumber(valor)}`;
+    feedback.style.left = `${metrics.x + offsetX}px`;
+    feedback.style.top = `${metrics.y + offsetY}px`;
+    document.body.appendChild(feedback);
+
+    setTimeout(() => feedback.remove(), 700);
+}
+
 function atualizarBuffsHUD() {
     const hud = document.getElementById("buffs-hud");
     if (!hud) {
         return;
     }
 
-    const skinBonus = getSkinBonusPercent();
-    const musicBonus = getMusicBonusPercent();
-    const rebirthBonus = getRebirthBonusPercent();
     const totalBonus = getTotalBonusPercent();
-    const clickPower = getClickPower();
-    const passive = getPassivePerSecond();
-    const currentMusic = getCurrentMusic();
 
     hud.innerHTML = `
-        <h3>Buffs Ativos</h3>
-        <p>Skin: +${formatNumber(skinBonus)}%</p>
-        <p>Musica (${currentMusic.nome}): +${formatNumber(musicBonus)}%</p>
-        <p>Rebirth: +${formatNumber(rebirthBonus)}%</p>
-        <p>Total: +${formatNumber(totalBonus)}%</p>
-        <p>Clique: ${formatNumber(clickPower)} | Passivo/s: ${formatNumber(passive)}</p>
+        <div class="buffs-grid">
+            <div class="buff-pill">
+                <span class="buff-label">Aumento total de ganho</span>
+                <span class="buff-value">+${formatNumber(totalBonus)}%</span>
+            </div>
+        </div>
     `;
 }
 
 function atualizarPontos() {
     document.getElementById("points").innerText = `Kanye Points: ${formatNumber(gameState.points)}`;
+    atualizarBarraXp();
     atualizarRebirthUI();
     atualizarBuffsHUD();
+}
+
+function atualizarBarraXp() {
+    const levelEl = document.getElementById("xp-level");
+    const progressEl = document.getElementById("xp-progress-text");
+    const fillEl = document.getElementById("xp-fill");
+
+    if (!levelEl || !progressEl || !fillEl) {
+        return;
+    }
+
+    const xpLevel = Math.max(1, Math.floor(safeNumber(gameState.xpLevel, 1)));
+    const xpRequired = getXpRequiredForLevel(xpLevel);
+    const xpCurrent = Math.max(0, Math.min(xpRequired - 1, Math.floor(safeNumber(gameState.xpCurrent, 0))));
+    const progressPercent = Math.min(100, Math.max(0, (xpCurrent / xpRequired) * 100));
+
+    levelEl.textContent = `NÃ­vel ${formatNumber(xpLevel)}`;
+    progressEl.textContent = `${formatNumber(xpCurrent)} / ${formatNumber(xpRequired)} XP`;
+    fillEl.style.width = `${progressPercent.toFixed(2)}%`;
 }
 
 function atualizarItens() {
@@ -991,47 +1544,79 @@ function atualizarItens() {
         return;
     }
 
+    const nickname = getLeaderboardNickname();
+    const sideTitle = document.querySelector(".side-title");
+    const sideSubtitle = document.querySelector(".side-subtitle");
+    if (sideTitle) {
+        sideTitle.textContent = `ImpÃ©rio de ${nickname}`;
+    }
+    if (sideSubtitle) {
+        sideSubtitle.textContent = `Resumo da carreira de ${nickname}`;
+    }
+
     const itensComprados = [];
     SHOP_ITEMS.forEach((item) => {
         const quantidade = gameState.shop[item.id].quantidade;
         if (quantidade > 0) {
-            itensComprados.push(`<span class="item-chip">${item.nome} x${formatNumber(quantidade)}</span>`);
+            itensComprados.push({
+                nome: item.nome,
+                quantidade
+            });
         }
     });
 
     const skinAtual = getCurrentSkin();
     const musicaAtual = getCurrentMusic();
+    const totalUpgrades = getTotalOwnedItems();
+    const totalSkins = sumOwnedSkins();
+    const totalMusicas = sumOwnedMusics();
+    const rebirths = gameState.rebirthCount;
+    const colecaoTotal = SKINS.length + MUSIC_TRACKS.length;
+    const colecaoAtual = totalSkins + totalMusicas;
+    const colecaoPercentual = Math.floor((colecaoAtual / Math.max(1, colecaoTotal)) * 100);
+    const tiposDeItens = itensComprados.length;
+    const chipsVisiveis = itensComprados
+        .slice()
+        .sort((a, b) => b.quantidade - a.quantidade)
+        .slice(0, 4)
+        .map((item) => `<span class="item-chip">${item.nome} x${formatNumber(item.quantidade)}</span>`);
+    const itensRestantes = Math.max(0, itensComprados.length - chipsVisiveis.length);
+    const listaChips = itensComprados.length > 0
+        ? `${chipsVisiveis.join("")}${itensRestantes > 0 ? `<span class="items-empty">+${formatNumber(itensRestantes)} itens</span>` : ""}`
+        : "<span class='items-empty'>Nenhum item comprado ainda</span>";
 
     itemsContainer.innerHTML = `
-        <div class="items-title">Inventario</div>
-        <p class="items-meta">Nickname: ${getLeaderboardNickname()}</p>
-        <p class="items-meta">Upgrades comprados: ${formatNumber(getTotalOwnedItems())}</p>
-        <div class="items-chips">
-            ${itensComprados.length > 0 ? itensComprados.join("") : "<span class='items-empty'>Nenhum item comprado ainda</span>"}
+        <div class="items-title">Resumo rÃ¡pido</div>
+        <div class="items-stats-grid">
+            <div class="items-stat-card">
+                <span class="items-stat-label">Poder</span>
+                <span class="items-stat-value">+${formatNumber(getTotalBonusPercent())}%</span>
+            </div>
+            <div class="items-stat-card">
+                <span class="items-stat-label">Rebirths</span>
+                <span class="items-stat-value">${formatNumber(rebirths)}</span>
+            </div>
+            <div class="items-stat-card">
+                <span class="items-stat-label">ColeÃ§Ã£o</span>
+                <span class="items-stat-value">${formatNumber(colecaoPercentual)}%</span>
+            </div>
+            <div class="items-stat-card">
+                <span class="items-stat-label">Itens</span>
+                <span class="items-stat-value">${formatNumber(totalUpgrades)} (${formatNumber(tiposDeItens)} tipos)</span>
+            </div>
         </div>
-        <p class="items-meta">Skin ativa: ${skinAtual.nome} (+${formatNumber(getSkinBonusPercent())}%)</p>
-        <p class="items-meta">Musica ativa: ${musicaAtual.nome} (+${formatNumber(getMusicBonusPercent())}%)</p>
-        <p class="items-meta">Skins: ${formatNumber(sumOwnedSkins())} | Musicas: ${formatNumber(sumOwnedMusics())} | Rebirths: ${formatNumber(gameState.rebirthCount)}</p>
+        <p class="items-meta">Ativos: <strong>${skinAtual.nome}</strong> e <strong>${musicaAtual.nome}</strong></p>
+        <p class="items-meta">ColeÃ§Ã£o desbloqueada: ${formatNumber(colecaoAtual)} / ${formatNumber(colecaoTotal)}</p>
+        <div class="items-chips">
+            ${listaChips}
+        </div>
     `;
 
     atualizarBuffsHUD();
 }
 
 function checkTarget() {
-    if (!gameState.targetAlertShown && gameState.points >= TARGET_POINTS) {
-        gameState.targetAlertShown = true;
-        showAlert();
-        saveGameState();
-    }
-}
-
-function showAlert() {
-    document.getElementById("alertPoints").textContent = formatNumber(gameState.points);
-    document.getElementById("customAlert").style.display = "flex";
-}
-
-function fecharAlert() {
-    document.getElementById("customAlert").style.display = "none";
+    // Alerta de 67 pontos removido por instabilidade.
 }
 
 function renderShop() {
@@ -1047,13 +1632,13 @@ function renderShop() {
                     <p class="item-level">Nivel: ${state.quantidade}</p>
                     <span class="item-price">${formatNumber(state.preco)} pontos</span>
                 </div>
-                <button class="shop-btn" onclick="comprarItem('${item.id}')">Comprar</button>
+                <button class="shop-btn" onclick="comprarItem('${item.id}', this)">Comprar</button>
             </div>
         `;
     }).join("");
 }
 
-function comprarItem(itemId) {
+function comprarItem(itemId, buttonEl = null) {
     const item = SHOP_ITEMS.find((entry) => entry.id === itemId);
     if (!item) {
         return;
@@ -1061,7 +1646,7 @@ function comprarItem(itemId) {
 
     const itemState = gameState.shop[item.id];
     if (gameState.points < itemState.preco) {
-        alert("Pontos insuficientes!");
+        tratarCompraInvalida(buttonEl);
         return;
     }
 
@@ -1077,6 +1662,7 @@ function comprarItem(itemId) {
     checkTarget();
     saveGameState();
 
+    tocarSomCompraCash();
     mostrarAnimacaoCompra(`${item.nome} comprado!`);
 }
 
@@ -1087,6 +1673,79 @@ function abrirLoja() {
 
 function fecharLoja() {
     document.getElementById("shop").style.display = "none";
+}
+
+function renderizarUpgrades() {
+    const container = document.getElementById("upgrades-list");
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = SPECIAL_UPGRADES.map((upgrade) => {
+        const state = gameState.upgrades[upgrade.id];
+        const maximo = state.nivel >= upgrade.maxNivel;
+        const textoPreco = maximo ? "MÃ¡ximo atingido" : `${formatNumber(state.preco)} pontos`;
+        const botaoLabel = maximo ? "Max" : "Melhorar";
+        const descricaoBonus = getDescricaoBonusUpgrade(upgrade, state.nivel);
+
+        return `
+            <div class="shop-item">
+                <div class="item-info">
+                    <h3>${upgrade.nome}</h3>
+                    <p>${upgrade.descricao}</p>
+                    <p class="item-level">Nivel: ${formatNumber(state.nivel)} / ${formatNumber(upgrade.maxNivel)}</p>
+                    <p class="item-level">${descricaoBonus}</p>
+                    <span class="item-price">${textoPreco}</span>
+                </div>
+                <button class="shop-btn" onclick="comprarUpgrade('${upgrade.id}', this)" ${maximo ? "disabled" : ""}>${botaoLabel}</button>
+            </div>
+        `;
+    }).join("");
+}
+
+function comprarUpgrade(upgradeId, buttonEl = null) {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === upgradeId);
+    if (!upgrade) {
+        return;
+    }
+
+    const state = gameState.upgrades[upgrade.id];
+    if (!state) {
+        return;
+    }
+
+    if (state.nivel >= upgrade.maxNivel) {
+        mostrarAnimacaoCompra(`${upgrade.nome} jÃ¡ estÃ¡ no nÃ­vel mÃ¡ximo.`);
+        return;
+    }
+
+    if (gameState.points < state.preco) {
+        tratarCompraInvalida(buttonEl);
+        return;
+    }
+
+    gameState.points -= state.preco;
+    state.nivel += 1;
+    state.preco = Math.floor(state.preco * UPGRADE_PRICE_MULTIPLIER);
+
+    renderizarUpgrades();
+    iniciarAutoClick();
+    atualizarPontos();
+    atualizarItens();
+    verificarConquistas();
+    saveGameState();
+
+    tocarSomCompraCash();
+    mostrarAnimacaoCompra(`Upgrade ${upgrade.nome} nivel ${state.nivel}!`);
+}
+
+function abrirUpgrades() {
+    renderizarUpgrades();
+    document.getElementById("upgrades").style.display = "flex";
+}
+
+function fecharUpgrades() {
+    document.getElementById("upgrades").style.display = "none";
 }
 
 function getAchievementProgress(achievement) {
@@ -1118,11 +1777,58 @@ function getAchievementProgress(achievement) {
         return leaderboardData.scores.length;
     }
 
+    if (achievement.tipo === "musics_owned") {
+        return sumOwnedMusics();
+    }
+
+    if (achievement.tipo === "rebirths") {
+        return gameState.rebirthCount;
+    }
+
+    if (achievement.tipo === "golden_clicks") {
+        return collectedGoldenClicks;
+    }
+
+    if (achievement.tipo === "special_upgrades") {
+        return SPECIAL_UPGRADES.reduce((acc, upgrade) => acc + getUpgradeLevel(upgrade.id), 0);
+    }
+
     return 0;
 }
 
 function isAchievementUnlocked(id) {
     return gameState.unlockedAchievements.includes(id);
+}
+
+function isAchievementRewardClaimed(id) {
+    return Array.isArray(gameState.claimedAchievementRewards) && gameState.claimedAchievementRewards.includes(id);
+}
+
+function getAchievementRewardLabel(achievement) {
+    if (!achievement.recompensa || !achievement.recompensa.pontos) {
+        return "";
+    }
+    return `Recompensa: ${formatNumber(achievement.recompensa.pontos)} pontos`;
+}
+
+function resgatarRecompensaConquista(achievementId) {
+    const achievement = ACHIEVEMENTS.find((entry) => entry.id === achievementId);
+    if (!achievement || !achievement.recompensa || !achievement.recompensa.pontos) {
+        return;
+    }
+
+    if (!isAchievementUnlocked(achievement.id) || isAchievementRewardClaimed(achievement.id)) {
+        return;
+    }
+
+    gameState.points += achievement.recompensa.pontos;
+    gameState.claimedAchievementRewards.push(achievement.id);
+    atualizarPontos();
+    atualizarItens();
+    saveGameState();
+    renderizarConquistas();
+    tocarSomCompraCash();
+    mostrarAnimacaoCompra(`Recompensa de ${achievement.nome} resgatada!`);
 }
 
 function verificarConquistas() {
@@ -1142,6 +1848,7 @@ function verificarConquistas() {
 
     if (desbloqueou) {
         saveGameState();
+        atualizarPontos();
         renderizarConquistas();
     }
 }
@@ -1165,19 +1872,26 @@ function renderizarConquistas() {
     container.innerHTML = visible.map((achievement) => {
         const unlocked = isAchievementUnlocked(achievement.id);
         const progress = Math.min(getAchievementProgress(achievement), achievement.meta);
+        const rewardLabel = getAchievementRewardLabel(achievement);
+        const rewardClaimed = isAchievementRewardClaimed(achievement.id);
+        const canClaimReward = unlocked && achievement.recompensa && !rewardClaimed;
 
         return `
             <div class="shop-item ${unlocked ? "desbloqueado" : ""}">
                 <div class="item-info">
-                    <h3>${unlocked ? "⭐" : "🔒"} ${achievement.nome}</h3>
+                    <h3>${unlocked ? "â­" : "ðŸ”’"} ${achievement.nome}</h3>
                     <p>${achievement.descricao}</p>
                     <p>${formatNumber(progress)} / ${formatNumber(achievement.meta)}</p>
+                    ${rewardLabel ? `<p class="achievement-reward">${rewardLabel}</p>` : ""}
                 </div>
+                ${canClaimReward
+                    ? `<button class="shop-btn" onclick="resgatarRecompensaConquista(${achievement.id})">Resgatar</button>`
+                    : (rewardLabel && rewardClaimed ? "<button class='shop-btn' disabled>Resgatado</button>" : "")}
             </div>
         `;
     }).join("");
 
-    pageInfo.textContent = `Pagina ${conquistasPaginaAtual} / ${totalPages}`;
+    pageInfo.textContent = `PÃ¡gina ${conquistasPaginaAtual} / ${totalPages}`;
 
     const canPrev = conquistasPaginaAtual > 1;
     const canNext = conquistasPaginaAtual < totalPages;
@@ -1221,20 +1935,20 @@ function renderizarSkins() {
                 <div class="item-info">
                     <h3>${usando ? "*" : ""} ${skin.nome}</h3>
                     <p>${skin.preco === 0 ? "Gratis" : `${formatNumber(skin.preco)} pontos`}</p>
-                    <p>Bonus: +${skin.bonus}% no ganho de pontos</p>
+                    <p>BÃ´nus: +${skin.bonus}% no ganho de pontos</p>
                 </div>
                 ${comprado
                     ? (usando
                         ? "<button class='shop-btn' disabled>Usando</button>"
                         : `<button class='shop-btn' onclick='usarSkin(${skin.id})'>Usar</button>`)
-                    : `<button class='shop-btn' onclick='comprarSkin(${skin.id})'>Comprar</button>`
+                    : `<button class='shop-btn' onclick='comprarSkin(${skin.id}, this)'>Comprar</button>`
                 }
             </div>
         `;
     }).join("");
 }
 
-function comprarSkin(id) {
+function comprarSkin(id, buttonEl = null) {
     const skin = SKINS.find((entry) => entry.id === id);
     if (!skin) {
         return;
@@ -1246,7 +1960,7 @@ function comprarSkin(id) {
     }
 
     if (gameState.points < skin.preco) {
-        alert("Pontos insuficientes!");
+        tratarCompraInvalida(buttonEl);
         return;
     }
 
@@ -1259,6 +1973,7 @@ function comprarSkin(id) {
     verificarConquistas();
     saveGameState();
 
+    tocarSomCompraCash();
     mostrarAnimacaoCompra(`Skin liberada: ${skin.nome}`);
 }
 
@@ -1304,20 +2019,20 @@ function renderizarMusicas() {
                     <h3>${usando ? "*" : ""} ${music.nome}</h3>
                     <p>${music.descricao}</p>
                     <p>${music.preco === 0 ? "Gratis" : `${formatNumber(music.preco)} pontos`}</p>
-                    <p>Bonus: +${music.bonus}%</p>
+                    <p>BÃ´nus: +${music.bonus}%</p>
                 </div>
                 ${comprado
                     ? (usando
                         ? "<button class='shop-btn' disabled>Tocando</button>"
                         : `<button class='shop-btn' onclick='usarMusica(${music.id})'>Usar</button>`)
-                    : `<button class='shop-btn' onclick='comprarMusica(${music.id})'>Comprar</button>`
+                    : `<button class='shop-btn' onclick='comprarMusica(${music.id}, this)'>Comprar</button>`
                 }
             </div>
         `;
     }).join("");
 }
 
-function comprarMusica(id) {
+function comprarMusica(id, buttonEl = null) {
     const music = MUSIC_TRACKS.find((entry) => entry.id === id);
     if (!music) {
         return;
@@ -1329,7 +2044,7 @@ function comprarMusica(id) {
     }
 
     if (gameState.points < music.preco) {
-        alert("Pontos insuficientes!");
+        tratarCompraInvalida(buttonEl);
         return;
     }
 
@@ -1344,7 +2059,8 @@ function comprarMusica(id) {
     verificarConquistas();
     saveGameState();
 
-    mostrarAnimacaoCompra(`Musica liberada: ${music.nome} tocando agora!`);
+    tocarSomCompraCash();
+    mostrarAnimacaoCompra(`MÃºsica liberada: ${music.nome} tocando agora!`);
 }
 
 function usarMusica(id) {
@@ -1396,6 +2112,13 @@ function atualizarInputsConfig() {
     if (settingsVolumeValue) {
         settingsVolumeValue.textContent = `${volumePercent}%`;
     }
+
+    const settingsClickSfx = document.getElementById("settings-click-sfx-enabled");
+    if (settingsClickSfx) {
+        // Checkbox representa "desativar": checked => som desligado.
+        settingsClickSfx.checked = !Boolean(gameState.clickSfxEnabled);
+    }
+
 }
 
 function atualizarPreviewVolumeConfiguracoes(value) {
@@ -1424,10 +2147,11 @@ function fecharConfiguracoes() {
 async function salvarConfiguracoes() {
     const nicknameInput = document.getElementById("settings-nickname");
     const volumeInput = document.getElementById("settings-volume");
+    const clickSfxInput = document.getElementById("settings-click-sfx-enabled");
 
     const novoNickname = normalizarNome(nicknameInput ? nicknameInput.value : "");
     if (!novoNickname) {
-        alert("Digite um nickname valido.");
+        alert("Digite um nickname vÃ¡lido.");
         return;
     }
 
@@ -1439,6 +2163,9 @@ async function salvarConfiguracoes() {
 
     gameState.nickname = novoNickname;
     aplicarVolumeMusica(volume);
+    // Checkbox representa "desativar": checked => som desligado.
+    const desativarSomClique = clickSfxInput ? Boolean(clickSfxInput.checked) : false;
+    gameState.clickSfxEnabled = !desativarSomClique;
 
     if (mudouNickname) {
         gameState.leaderboardRegistered = false;
@@ -1450,7 +2177,7 @@ async function salvarConfiguracoes() {
     atualizarItens();
     fecharConfiguracoes();
 
-    mostrarAnimacaoCompra("Configuracoes salvas!");
+    mostrarAnimacaoCompra("ConfiguraÃ§Ãµes salvas!");
 
     if (mudouNickname) {
         await sincronizarLeaderboardAutomaticamente(true);
@@ -1565,7 +2292,7 @@ async function salvarScoreLeaderboard() {
     const nome = getLeaderboardNickname();
 
     if (!nome) {
-        alert("Digite um nickname valido para salvar no ranking.");
+        alert("Digite um nickname vÃ¡lido para salvar no ranking.");
         return;
     }
 
@@ -1638,16 +2365,33 @@ function iniciarAutoClick() {
             return;
         }
 
-        adicionarPontos(passive);
+        const ganho = adicionarPontos(passive);
+        mostrarFeedbackPontos(ganho, "auto");
         atualizarPontos();
         checkTarget();
         verificarConquistas();
         saveGameState();
-    }, 1000);
+    }, getAutoClickIntervalMs());
+}
+
+function animarCliquePrincipal() {
+    const botao = document.getElementById("kanye");
+    if (!botao) {
+        return;
+    }
+
+    botao.classList.remove("is-click-animating");
+    // Reinicia a animacao para cada clique sem deslocar o botao.
+    void botao.offsetWidth;
+    botao.classList.add("is-click-animating");
 }
 
 function registrarCliquePrincipal() {
-    adicionarPontos(getClickPower());
+    animarCliquePrincipal();
+    tocarSomCliquePop();
+    const ganho = adicionarPontos(getClickPower());
+    adicionarXpPorClique(1 + getXpGainPerClickUpgradeValue());
+    mostrarFeedbackPontos(ganho, "manual");
     gameState.totalClicks += 1;
 
     atualizarPontos();
@@ -1675,6 +2419,7 @@ async function initGame() {
     iniciarAutoSyncLeaderboard();
     verificarConquistas();
     iniciarAutoClick();
+    iniciarEventosAleatorios();
     sincronizarMusicaAtiva(false);
 
     document.addEventListener("pointerdown", () => {
@@ -1688,3 +2433,4 @@ async function initGame() {
 }
 
 initGame();
+

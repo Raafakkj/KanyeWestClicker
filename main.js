@@ -51,7 +51,8 @@ const CASH_RAIN_DURATION_MS = 12000;
 const CASH_RAIN_TICK_MS = 1000;
 const EVENT_SCRATCH_AUDIO_PATH = "assets/music/scratch.mp3";
 // Defina aqui a imagem fixa do golden click.
-const GOLDEN_CLICK_IMAGE = "assets/kanye/kanyeRunaway.jpg";
+const GOLDEN_CLICK_IMAGE = "assets/kanye/goldenkanye.jpg";
+const GOLDEN_POINTER_IMAGE = "assets/items/goldenClicker.png";
 const GOLDEN_CLICK_KANYE_IMAGES = [
     "assets/kanye/41-414314_transparent-kanye-head-png-kanye-west-head-png.png",
     "assets/kanye/48bb3318d8ae27f31eba3f1db412d15d.752x752x1.jpg",
@@ -477,6 +478,7 @@ const ACHIEVEMENTS = [
 let gameState = createDefaultGameState();
 let leaderboardData = { scores: [] };
 let autoClickInterval = null;
+let goldenAutoClickInterval = null;
 let conquistasPaginaAtual = 1;
 let musicPlayer = null;
 let currentPlayingMusicId = 0;
@@ -1161,6 +1163,26 @@ function getPassivePerSecond() {
     return passive;
 }
 
+function getNormalPassivePerSecond() {
+    let passive = 0;
+    SHOP_ITEMS.forEach((item) => {
+        if (item.tipo === "passive" && item.id !== "gold_auto_clicker") {
+            passive += gameState.shop[item.id].quantidade * item.valor;
+        }
+    });
+    return passive;
+}
+
+function getGoldenPassivePerSecond() {
+    const state = gameState.shop && gameState.shop.gold_auto_clicker;
+    const quantidade = Math.max(0, Math.floor(safeNumber(state ? state.quantidade : 0, 0)));
+    const item = SHOP_ITEMS.find((entry) => entry.id === "gold_auto_clicker");
+    if (!item) {
+        return 0;
+    }
+    return quantidade * item.valor;
+}
+
 function getUpgradeLevel(upgradeId) {
     const state = gameState.upgrades && gameState.upgrades[upgradeId];
     return Math.max(0, Math.floor(safeNumber(state ? state.nivel : 0, 0)));
@@ -1244,6 +1266,12 @@ function getAutoClickIntervalMs() {
     const speedBonus = getAutoSpeedBonusPercent();
     const speedMultiplier = 1 + (speedBonus / 100);
     return Math.max(120, Math.floor(1000 / speedMultiplier));
+}
+
+function getGoldenAutoClickIntervalMs() {
+    const speedBonus = getAutoSpeedBonusPercent();
+    const speedMultiplier = 1 + (speedBonus / 100);
+    return Math.max(90, Math.floor(650 / speedMultiplier));
 }
 
 function getTotalOwnedItems() {
@@ -1678,7 +1706,7 @@ function atualizarCentroPonteiros() {
 
 function criarPointer(indice, totalPointers, isGolden = false) {
     const pointer = document.createElement("img");
-    pointer.src = POINTER_SVG_PATH;
+    pointer.src = isGolden ? GOLDEN_POINTER_IMAGE : POINTER_SVG_PATH;
     pointer.className = "pointer-orbit";
     pointer.dataset.generated = "1";
 
@@ -1812,6 +1840,42 @@ function atualizarTourBusCorner() {
     corner.setAttribute("aria-hidden", show ? "false" : "true");
 }
 
+function atualizarStreamFarmCorner() {
+    const corner = document.getElementById("stream-farm-corner");
+    if (!corner) {
+        return;
+    }
+
+    const quantidade = Math.max(0, Math.floor(safeNumber(gameState.shop?.stream_farm?.quantidade, 0)));
+    const show = quantidade > 0;
+    corner.classList.toggle("show", show);
+    corner.setAttribute("aria-hidden", show ? "false" : "true");
+}
+
+function atualizarBeatPackCorner() {
+    const corner = document.getElementById("beat-pack-corner");
+    if (!corner) {
+        return;
+    }
+
+    const quantidade = Math.max(0, Math.floor(safeNumber(gameState.shop?.beat_pack?.quantidade, 0)));
+    const show = quantidade > 0;
+    corner.classList.toggle("show", show);
+    corner.setAttribute("aria-hidden", show ? "false" : "true");
+}
+
+function atualizarYeezyCampaignCorner() {
+    const corner = document.getElementById("yeezy-campaign-corner");
+    if (!corner) {
+        return;
+    }
+
+    const quantidade = Math.max(0, Math.floor(safeNumber(gameState.shop?.yeezy_campaign?.quantidade, 0)));
+    const show = quantidade > 0;
+    corner.classList.toggle("show", show);
+    corner.setAttribute("aria-hidden", show ? "false" : "true");
+}
+
 function atualizarItens() {
     const itemsContainer = document.getElementById("items");
     if (!itemsContainer) {
@@ -1891,6 +1955,9 @@ function atualizarItens() {
     `;
 
     atualizarTourBusCorner();
+    atualizarStreamFarmCorner();
+    atualizarBeatPackCorner();
+    atualizarYeezyCampaignCorner();
     atualizarBuffsHUD();
 }
 
@@ -2655,20 +2722,41 @@ function iniciarAutoClick() {
     if (autoClickInterval) {
         clearInterval(autoClickInterval);
     }
+    if (goldenAutoClickInterval) {
+        clearInterval(goldenAutoClickInterval);
+    }
 
+    const normalIntervalMs = getAutoClickIntervalMs();
     autoClickInterval = setInterval(() => {
-        const passive = getPassivePerSecond();
+        const passive = getNormalPassivePerSecond();
         if (passive <= 0) {
             return;
         }
 
-        const ganho = adicionarPontos(passive);
+        const ganhoPorTick = passive * (normalIntervalMs / 1000);
+        const ganho = adicionarPontos(ganhoPorTick);
         mostrarFeedbackPontos(ganho, "auto");
         atualizarPontos();
         checkTarget();
         verificarConquistas();
         saveGameState();
-    }, getAutoClickIntervalMs());
+    }, normalIntervalMs);
+
+    const goldenIntervalMs = getGoldenAutoClickIntervalMs();
+    goldenAutoClickInterval = setInterval(() => {
+        const passive = getGoldenPassivePerSecond();
+        if (passive <= 0) {
+            return;
+        }
+
+        const ganhoPorTick = passive * (goldenIntervalMs / 1000);
+        const ganho = adicionarPontos(ganhoPorTick);
+        mostrarFeedbackPontos(ganho, "auto");
+        atualizarPontos();
+        checkTarget();
+        verificarConquistas();
+        saveGameState();
+    }, goldenIntervalMs);
 }
 
 function animarCliquePrincipal() {

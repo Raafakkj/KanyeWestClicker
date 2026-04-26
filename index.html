@@ -15,14 +15,28 @@
             </div>
 
             <div class="clicker-container">
-                <button id="kanye"><img src="assets/kanye/41-414314_transparent-kanye-head-png-kanye-west-head-png.png" alt="Kanye West"></button>
+                <button id="kanye">
+                    <img src="assets/kanye/41-414314_transparent-kanye-head-png-kanye-west-head-png.png" alt="Kanye West">
+                    <span class="vinyl-core">
+                        <span class="vinyl-hole"></span>
+                        <span class="vinyl-dot dot-a"></span>
+                        <span class="vinyl-dot dot-b"></span>
+                        <span class="vinyl-dot dot-c"></span>
+                    </span>
+                </button>
             </div>
+            <div id="buffs-hud" class="buffs-hud"></div>
         </section>
 
         <aside class="right-panel">
             <h2 class="side-title">Informações.</h2>
             <p class="side-subtitle">Yeezus?</p>
-            <h1 id="items" class="items-list">Itens: Nenhum</h1>
+            <div id="items" class="items-list"></div>
+            <div class="rebirth-card">
+                <h3>Rebirth</h3>
+                <p id="rebirth-status">Rebirths: 0 | Bonus: +0%</p>
+                <p id="rebirth-next">Proximo em 250.000 pontos</p>
+            </div>
 
             <!-- Botoes de menu -->
             <div class="top-menu">
@@ -30,6 +44,7 @@
                 <button class="open-achievements-btn" onclick="abrirConquistas()">Conquistas</button>
                 <button class="open-custom-btn" onclick="abrirPersonalizacao()">Personalizar</button>
                 <button class="open-leaderboard-btn" onclick="abrirLeaderboard()">Leaderboard</button>
+                <button class="open-settings-btn" onclick="abrirConfiguracoes()">Configuracoes</button>
             </div>
         </aside>
     </div>
@@ -83,13 +98,46 @@
         <div class="shop-box">
             <h2 class="shop-title">Leaderboard</h2>
             <div class="leaderboard-form">
-                <input id="leaderboard-name" type="text" maxlength="20" placeholder="Seu nome">
-                <button class="shop-btn" onclick="salvarScoreLeaderboard()">Salvar score atual</button>
+                <p id="leaderboard-current-nickname" class="leaderboard-current-nickname">Nickname: Player</p>
             </div>
             <div class="shop-items" id="leaderboard-lista"></div>
             <button class="shop-close-btn" onclick="fecharLeaderboard()">Fechar</button>
         </div>
     </div>
+
+    <!-- Configuracoes -->
+    <div id="settings" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Configuracoes</h2>
+            <div class="settings-grid">
+                <label for="settings-nickname">Nickname</label>
+                <input id="settings-nickname" type="text" maxlength="20" placeholder="Seu nickname">
+                <label for="settings-volume">Volume da musica: <span id="settings-volume-value">45%</span></label>
+                <input id="settings-volume" type="range" min="0" max="100" step="1" value="45" oninput="atualizarPreviewVolumeConfiguracoes(this.value)">
+            </div>
+            <button class="shop-btn settings-save-btn" onclick="salvarConfiguracoes()">Salvar configuracoes</button>
+            <button class="shop-close-btn" onclick="fecharConfiguracoes()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Loja de Musicas -->
+    <div id="music-shop" class="shop-overlay">
+        <div class="shop-box">
+            <h2 class="shop-title">Loja de Musicas</h2>
+            <div class="shop-items" id="lista-musicas"></div>
+            <button class="shop-close-btn" onclick="fecharLojaMusicas()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Botao flutuante: Musicas -->
+    <button class="floating-music-btn" onclick="abrirLojaMusicas()" aria-label="Abrir loja de musicas">
+        <img src="assets/items/caixadesom.png" alt="Loja de Musicas">
+    </button>
+
+    <!-- Botao flutuante: Rebirth -->
+    <button id="rebirth-float-btn" class="rebirth-float-btn" onclick="tentarRebirth()" aria-label="Fazer rebirth">
+        <img src="assets/items/KanyeButton.png" alt="Rebirth">
+    </button>
 
     <script src="main.js"></script>
 </body>

@@ -1026,6 +1026,13 @@ body.double-event-rgb::before {
     box-shadow: 0 0 18px rgba(120, 210, 255, 0.18);
 }
 
+.click-gain-feedback.critical {
+    color: #ffe49f;
+    border-color: rgba(255, 222, 126, 0.45);
+    background: rgba(115, 71, 17, 0.66);
+    box-shadow: 0 0 22px rgba(255, 210, 102, 0.34);
+}
+
 @keyframes clickGainFloat {
     0% {
         opacity: 0;
@@ -1060,6 +1067,10 @@ body.double-event-rgb::before {
     animation: orbitClick var(--duration, 3s) linear infinite;
     animation-delay: var(--delay, 0s);
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+}
+
+.pointer-orbit.golden {
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5)) sepia(1) saturate(2.3) hue-rotate(345deg) brightness(1.08);
 }
 
 .floating-music-btn,

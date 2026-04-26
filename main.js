@@ -7,7 +7,8 @@ const LEADERBOARD_SEED_URL = "leaderboard.json";
 const LEADERBOARD_STORAGE_KEY = "kanye_clicker_leaderboard_local_v1";
 const MAX_LEADERBOARD_ENTRIES = 5;
 const ACHIEVEMENTS_PER_PAGE = 8;
-const MAX_POINTERS = 25;
+const MAX_POINTERS = 48;
+const AUTOCLICKER_GOLDEN_POINTER_START = 26;
 const AUTOCLICKER_FACE_ANGLE_DEG = -90; // ajuste aqui caso a ponta nao esteja apontando para o centro
 const AUTOCLICKER_CLICK_DEPTH_BASE = 12;
 const AUTOCLICKER_CLICK_DEPTH_STEP = 0.7;
@@ -21,6 +22,10 @@ const DEFAULT_MUSIC_VOLUME = 0.45;
 const DEFAULT_CLICK_SFX_ENABLED = true;
 const XP_BASE_REQUIREMENT = 25;
 const XP_LEVEL_GROWTH = 1.28;
+const XP_POINT_BONUS_PER_LEVEL = 0.35;
+const XP_POINT_BONUS_CAP = 180;
+const CRIT_BASE_CHANCE_PERCENT = 5;
+const CRIT_BASE_MULTIPLIER = 2;
 const CLICK_POP_AUDIO_PATH = "assets/music/pop.mp3";
 const CLICK_POP_VOLUME = 0.55;
 const CASH_SFX_AUDIO_PATH = "assets/music/cash.mp3";
@@ -37,6 +42,13 @@ const GOLDEN_CLICK_MIN_INTERVAL_MS = 35000;
 const GOLDEN_CLICK_MAX_INTERVAL_MS = 95000;
 const GOLDEN_CLICK_VISIBLE_MS = 16000;
 const GOLDEN_CLICK_MIN_REWARD = 600;
+const SPECIAL_EVENT_MIN_INTERVAL_MS = 42000;
+const SPECIAL_EVENT_MAX_INTERVAL_MS = 98000;
+const CRIT_SURGE_DURATION_MS = 20000;
+const CRIT_SURGE_CHANCE_BONUS = 16;
+const CRIT_SURGE_MULTIPLIER_BONUS = 0.8;
+const CASH_RAIN_DURATION_MS = 12000;
+const CASH_RAIN_TICK_MS = 1000;
 const EVENT_SCRATCH_AUDIO_PATH = "assets/music/scratch.mp3";
 // Defina aqui a imagem fixa do golden click.
 const GOLDEN_CLICK_IMAGE = "assets/kanye/kanyeRunaway.jpg";
@@ -140,7 +152,7 @@ const SPECIAL_UPGRADES = [
         descricao: "Autoclick mais rapido",
         precoBase: 1800,
         valorPercent: 12,
-        maxNivel: 8
+        maxNivel: 16
     },
     {
         id: "global_gain",
@@ -148,15 +160,39 @@ const SPECIAL_UPGRADES = [
         descricao: "Aumenta o ganho total",
         precoBase: 2600,
         valorPercent: 10,
-        maxNivel: 10
+        maxNivel: 14
     },
     {
         id: "xp_click",
         nome: "Academia de Flow",
         descricao: "Aumenta o XP ganho por clique manual",
         precoBase: 3200,
-        valorPercent: 1,
+        valorPercent: 2,
+        maxNivel: 20
+    },
+    {
+        id: "event_luck",
+        nome: "Radar de Eventos",
+        descricao: "Eventos aleatorios aparecem com mais frequencia",
+        precoBase: 4200,
+        valorPercent: 8,
         maxNivel: 12
+    },
+    {
+        id: "crit_chance",
+        nome: "Foco Letal",
+        descricao: "Aumenta a chance de clique critico",
+        precoBase: 5600,
+        valorPercent: 2,
+        maxNivel: 12
+    },
+    {
+        id: "crit_power",
+        nome: "Impacto Brutal",
+        descricao: "Aumenta o dano do clique critico",
+        precoBase: 7200,
+        valorPercent: 18,
+        maxNivel: 10
     }
 ];
 
@@ -408,7 +444,16 @@ const ACHIEVEMENTS = [
     { id: 34, nome: "Reborn", descricao: "Faca 1 rebirth", tipo: "rebirths", meta: 1, recompensa: { pontos: 2000 } },
     { id: 35, nome: "Phoenix Loop", descricao: "Faca 3 rebirths", tipo: "rebirths", meta: 3, recompensa: { pontos: 7000 } },
     { id: 36, nome: "Golden Hunter", descricao: "Colete 5 golden clicks", tipo: "golden_clicks", meta: 5, recompensa: { pontos: 1500 } },
-    { id: 37, nome: "Upgrade Fanatic", descricao: "Compre 8 boosts especiais", tipo: "special_upgrades", meta: 8, recompensa: { pontos: 1800 } }
+    { id: 37, nome: "Upgrade Fanatic", descricao: "Compre 8 boosts especiais", tipo: "special_upgrades", meta: 8, recompensa: { pontos: 1800 } },
+    { id: 38, nome: "Critical Starter", descricao: "Acerte 25 cliques criticos", tipo: "critical_clicks", meta: 25, recompensa: { pontos: 1800 } },
+    { id: 39, nome: "Critical Master", descricao: "Acerte 200 cliques criticos", tipo: "critical_clicks", meta: 200, recompensa: { pontos: 8500 } },
+    { id: 40, nome: "Caos Magnetico", descricao: "Ative 15 eventos aleatorios", tipo: "random_events", meta: 15, recompensa: { pontos: 2600 } },
+    { id: 41, nome: "Festival Infinito", descricao: "Ative 60 eventos aleatorios", tipo: "random_events", meta: 60, recompensa: { pontos: 14000 } },
+    { id: 42, nome: "XP Runner", descricao: "Alcance nivel 25 de XP", tipo: "xp_level", meta: 25, recompensa: { pontos: 3500 } },
+    { id: 43, nome: "XP Ascension", descricao: "Alcance nivel 60 de XP", tipo: "xp_level", meta: 60, recompensa: { pontos: 18000 } },
+    { id: 44, nome: "Auto Swarm", descricao: "Compre 25 Auto Clickers", tipo: "item_quantity", itemId: "auto_clicker", meta: 25, recompensa: { pontos: 3200 } },
+    { id: 45, nome: "Auto Dominion", descricao: "Compre 45 Auto Clickers", tipo: "item_quantity", itemId: "auto_clicker", meta: 45, recompensa: { pontos: 12000 } },
+    { id: 46, nome: "Upgrade Overdrive", descricao: "Compre 24 boosts especiais", tipo: "special_upgrades", meta: 24, recompensa: { pontos: 22000 } }
 ];
 
 let gameState = createDefaultGameState();
@@ -430,6 +475,13 @@ let eventSfxPlayer = null;
 let pendingRebirthGain = 0;
 const activeClickSfxPlayers = new Set();
 let collectedGoldenClicks = 0;
+let specialEventSpawnTimeout = null;
+let critSurgeActive = false;
+let critSurgeEndsAt = 0;
+let critSurgeTimeout = null;
+let cashRainActive = false;
+let cashRainEndsAt = 0;
+let cashRainInterval = null;
 
 function createDefaultGameState() {
     const shop = createDefaultShopState();
@@ -445,6 +497,8 @@ function createDefaultGameState() {
         leaderboardBestScore: 0,
         points: 0,
         totalClicks: 0,
+        totalCriticalClicks: 0,
+        randomEventsTriggered: 0,
         xpLevel: 1,
         xpCurrent: 0,
         shop,
@@ -744,7 +798,11 @@ function getRebirthBonusPercent() {
 }
 
 function getTotalBonusPercent() {
-    return getSkinBonusPercent() + getMusicBonusPercent() + getRebirthBonusPercent() + getGlobalGainUpgradePercent();
+    return getSkinBonusPercent()
+        + getMusicBonusPercent()
+        + getRebirthBonusPercent()
+        + getGlobalGainUpgradePercent()
+        + getXpLevelPointBonusPercent();
 }
 
 function getGainMultiplier() {
@@ -763,7 +821,7 @@ function agendarProximoEventoDouble() {
         clearTimeout(doubleEventStartTimeout);
     }
 
-    const delay = randomRange(DOUBLE_EVENT_MIN_INTERVAL_MS, DOUBLE_EVENT_MAX_INTERVAL_MS);
+    const delay = getEventSpawnDelay(DOUBLE_EVENT_MIN_INTERVAL_MS, DOUBLE_EVENT_MAX_INTERVAL_MS);
     doubleEventStartTimeout = setTimeout(() => {
         iniciarEventoDouble();
     }, delay);
@@ -804,6 +862,110 @@ function iniciarEventoDouble() {
         }
         atualizarBuffsHUD();
     }, 250);
+
+    gameState.randomEventsTriggered += 1;
+    verificarConquistas();
+    saveGameState();
+}
+
+function encerrarEventoCritSurge() {
+    if (critSurgeTimeout) {
+        clearTimeout(critSurgeTimeout);
+        critSurgeTimeout = null;
+    }
+    critSurgeActive = false;
+    critSurgeEndsAt = 0;
+    atualizarBuffsHUD();
+}
+
+function iniciarEventoCritSurge() {
+    if (critSurgeActive) {
+        return;
+    }
+
+    critSurgeActive = true;
+    critSurgeEndsAt = Date.now() + CRIT_SURGE_DURATION_MS;
+    mostrarAnimacaoCompra("Evento: Frenesi Critico!");
+    atualizarBuffsHUD();
+
+    if (critSurgeTimeout) {
+        clearTimeout(critSurgeTimeout);
+    }
+    critSurgeTimeout = setTimeout(() => {
+        encerrarEventoCritSurge();
+        mostrarAnimacaoCompra("Frenesi Critico terminou.");
+    }, CRIT_SURGE_DURATION_MS);
+
+    gameState.randomEventsTriggered += 1;
+    verificarConquistas();
+    saveGameState();
+}
+
+function encerrarEventoCashRain() {
+    if (cashRainInterval) {
+        clearInterval(cashRainInterval);
+        cashRainInterval = null;
+    }
+    cashRainActive = false;
+    cashRainEndsAt = 0;
+}
+
+function iniciarEventoCashRain() {
+    if (cashRainActive) {
+        return;
+    }
+
+    cashRainActive = true;
+    cashRainEndsAt = Date.now() + CASH_RAIN_DURATION_MS;
+    mostrarAnimacaoCompra("Evento: Chuva de Pontos!");
+
+    if (cashRainInterval) {
+        clearInterval(cashRainInterval);
+    }
+    cashRainInterval = setInterval(() => {
+        if (Date.now() >= cashRainEndsAt) {
+            encerrarEventoCashRain();
+            mostrarAnimacaoCompra("Chuva de Pontos acabou.");
+            return;
+        }
+
+        const recompensa = Math.max(40, Math.floor((getClickPower() * 5) + (getPassivePerSecond() * 2)));
+        const ganho = adicionarPontos(recompensa);
+        mostrarFeedbackPontos(ganho, "auto");
+        atualizarPontos();
+        checkTarget();
+        verificarConquistas();
+        saveGameState();
+    }, CASH_RAIN_TICK_MS);
+
+    gameState.randomEventsTriggered += 1;
+    verificarConquistas();
+    saveGameState();
+}
+
+function iniciarEventoEspecialAleatorio() {
+    const roll = Math.random();
+    if (roll < 0.4) {
+        iniciarEventoCritSurge();
+        return;
+    }
+    if (roll < 0.8) {
+        iniciarEventoCashRain();
+        return;
+    }
+    mostrarGoldenClick();
+}
+
+function agendarProximoEventoEspecial() {
+    if (specialEventSpawnTimeout) {
+        clearTimeout(specialEventSpawnTimeout);
+    }
+
+    const delay = getEventSpawnDelay(SPECIAL_EVENT_MIN_INTERVAL_MS, SPECIAL_EVENT_MAX_INTERVAL_MS);
+    specialEventSpawnTimeout = setTimeout(() => {
+        iniciarEventoEspecialAleatorio();
+        agendarProximoEventoEspecial();
+    }, delay);
 }
 
 function getGoldenButton() {
@@ -865,7 +1027,7 @@ function agendarProximoGoldenClick() {
         clearTimeout(goldenClickSpawnTimeout);
     }
 
-    const delay = randomRange(GOLDEN_CLICK_MIN_INTERVAL_MS, GOLDEN_CLICK_MAX_INTERVAL_MS);
+    const delay = getEventSpawnDelay(GOLDEN_CLICK_MIN_INTERVAL_MS, GOLDEN_CLICK_MAX_INTERVAL_MS);
     goldenClickSpawnTimeout = setTimeout(() => {
         mostrarGoldenClick();
     }, delay);
@@ -909,6 +1071,9 @@ function mostrarGoldenClick() {
     button.removeAttribute("aria-hidden");
     mostrarAnimacaoCompra("Golden click apareceu!");
     atualizarBuffsHUD();
+    gameState.randomEventsTriggered += 1;
+    verificarConquistas();
+    saveGameState();
 
     if (goldenClickHideTimeout) {
         clearTimeout(goldenClickHideTimeout);
@@ -955,6 +1120,7 @@ function iniciarEventosAleatorios() {
     getGoldenButton();
     agendarProximoEventoDouble();
     agendarProximoGoldenClick();
+    agendarProximoEventoEspecial();
 }
 
 function getClickPower() {
@@ -996,6 +1162,56 @@ function getGlobalGainUpgradePercent() {
         return 0;
     }
     return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getEventLuckPercent() {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === "event_luck");
+    if (!upgrade) {
+        return 0;
+    }
+    return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getCritChanceUpgradePercent() {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === "crit_chance");
+    if (!upgrade) {
+        return 0;
+    }
+    return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getCritPowerUpgradePercent() {
+    const upgrade = SPECIAL_UPGRADES.find((entry) => entry.id === "crit_power");
+    if (!upgrade) {
+        return 0;
+    }
+    return getUpgradeLevel(upgrade.id) * upgrade.valorPercent;
+}
+
+function getXpLevelPointBonusPercent() {
+    const level = Math.max(1, Math.floor(safeNumber(gameState.xpLevel, 1)));
+    const rawBonus = (level - 1) * XP_POINT_BONUS_PER_LEVEL;
+    return Math.min(XP_POINT_BONUS_CAP, Math.floor(rawBonus * 100) / 100);
+}
+
+function getCurrentCritChancePercent() {
+    const xpBonus = Math.floor(Math.max(0, Math.floor(safeNumber(gameState.xpLevel, 1)) - 1) / 12);
+    const surgeBonus = critSurgeActive ? CRIT_SURGE_CHANCE_BONUS : 0;
+    return Math.min(90, CRIT_BASE_CHANCE_PERCENT + getCritChanceUpgradePercent() + xpBonus + surgeBonus);
+}
+
+function getCurrentCritMultiplier() {
+    const powerMultiplier = 1 + (getCritPowerUpgradePercent() / 100);
+    const surgeMultiplier = critSurgeActive ? CRIT_SURGE_MULTIPLIER_BONUS : 0;
+    return CRIT_BASE_MULTIPLIER * powerMultiplier + surgeMultiplier;
+}
+
+function getEventSpawnDelay(baseMin, baseMax) {
+    const luckPercent = getEventLuckPercent();
+    const factor = 1 / (1 + (luckPercent / 100));
+    const scaledMin = Math.max(6000, Math.floor(baseMin * factor));
+    const scaledMax = Math.max(scaledMin + 2000, Math.floor(baseMax * factor));
+    return randomRange(scaledMin, scaledMax);
 }
 
 function getXpGainPerClickUpgradeValue() {
@@ -1049,6 +1265,15 @@ function getDescricaoBonusUpgrade(upgrade, level) {
     const bonusAtual = formatNumber(level * upgrade.valorPercent);
     if (upgrade.id === "xp_click") {
         return `XP por clique atual: +${bonusAtual}`;
+    }
+    if (upgrade.id === "event_luck") {
+        return `Frequencia de eventos: +${bonusAtual}%`;
+    }
+    if (upgrade.id === "crit_chance") {
+        return `Chance critica adicional: +${bonusAtual}%`;
+    }
+    if (upgrade.id === "crit_power") {
+        return `Forca critica adicional: +${bonusAtual}%`;
     }
     return `Bonus atual: +${bonusAtual}%`;
 }
@@ -1198,6 +1423,8 @@ function loadGameState() {
 
         defaultState.points = Math.max(0, Math.floor(safeNumber(parsed.points, 0)));
         defaultState.totalClicks = Math.max(0, Math.floor(safeNumber(parsed.totalClicks, 0)));
+        defaultState.totalCriticalClicks = Math.max(0, Math.floor(safeNumber(parsed.totalCriticalClicks, 0)));
+        defaultState.randomEventsTriggered = Math.max(0, Math.floor(safeNumber(parsed.randomEventsTriggered, 0)));
         defaultState.xpLevel = Math.max(1, Math.floor(safeNumber(parsed.xpLevel, 1)));
         const xpMax = getXpRequiredForLevel(defaultState.xpLevel);
         defaultState.xpCurrent = Math.max(0, Math.min(xpMax - 1, Math.floor(safeNumber(parsed.xpCurrent, 0))));
@@ -1451,6 +1678,10 @@ function criarPointer(indice, totalPointers) {
     pointer.style.animationDuration = `${duration}s`;
     pointer.style.animationDelay = `${delay}s`;
 
+    if (indice >= AUTOCLICKER_GOLDEN_POINTER_START) {
+        pointer.classList.add("golden");
+    }
+
     document.body.appendChild(pointer);
 }
 
@@ -1480,12 +1711,13 @@ function mostrarFeedbackPontos(quantidade, origem = "manual") {
     }
 
     const metrics = getKanyeButtonMetrics();
-    const spread = origem === "auto" ? 88 : 62;
+    const spread = origem === "auto" ? 88 : (origem === "critical" ? 72 : 62);
     const offsetX = (Math.random() * (spread * 2)) - spread;
     const offsetY = -12 - (Math.random() * 34);
 
     const feedback = document.createElement("div");
-    feedback.className = `click-gain-feedback ${origem === "auto" ? "auto" : "manual"}`;
+    const tipoClasse = origem === "auto" ? "auto" : (origem === "critical" ? "critical" : "manual");
+    feedback.className = `click-gain-feedback ${tipoClasse}`;
     feedback.textContent = `+${formatNumber(valor)}`;
     feedback.style.left = `${metrics.x + offsetX}px`;
     feedback.style.top = `${metrics.y + offsetY}px`;
@@ -1501,12 +1733,24 @@ function atualizarBuffsHUD() {
     }
 
     const totalBonus = getTotalBonusPercent();
+    const critChance = getCurrentCritChancePercent();
+    const critMulti = getCurrentCritMultiplier();
+    const xpBonus = getXpLevelPointBonusPercent();
+    const eventLuck = getEventLuckPercent();
 
     hud.innerHTML = `
         <div class="buffs-grid">
             <div class="buff-pill">
                 <span class="buff-label">Aumento total de ganho</span>
                 <span class="buff-value">+${formatNumber(totalBonus)}%</span>
+            </div>
+            <div class="buff-pill">
+                <span class="buff-label">Critico</span>
+                <span class="buff-value">${formatNumber(critChance)}% | x${critMulti.toFixed(2).replace(".", ",")}</span>
+            </div>
+            <div class="buff-pill">
+                <span class="buff-label">Bônus de XP e sorte</span>
+                <span class="buff-value">XP: +${formatNumber(xpBonus)}% | Eventos: +${formatNumber(eventLuck)}%</span>
             </div>
         </div>
     `;
@@ -1571,6 +1815,8 @@ function atualizarItens() {
     const totalSkins = sumOwnedSkins();
     const totalMusicas = sumOwnedMusics();
     const rebirths = gameState.rebirthCount;
+    const xpLevel = Math.max(1, Math.floor(safeNumber(gameState.xpLevel, 1)));
+    const critChance = getCurrentCritChancePercent();
     const colecaoTotal = SKINS.length + MUSIC_TRACKS.length;
     const colecaoAtual = totalSkins + totalMusicas;
     const colecaoPercentual = Math.floor((colecaoAtual / Math.max(1, colecaoTotal)) * 100);
@@ -1606,6 +1852,8 @@ function atualizarItens() {
             </div>
         </div>
         <p class="items-meta">Ativos: <strong>${skinAtual.nome}</strong> e <strong>${musicaAtual.nome}</strong></p>
+        <p class="items-meta">XP: Nivel ${formatNumber(xpLevel)} | Bonus de pontos: +${formatNumber(getXpLevelPointBonusPercent())}%</p>
+        <p class="items-meta">Critico: ${formatNumber(critChance)}% | Criticos totais: ${formatNumber(gameState.totalCriticalClicks || 0)}</p>
         <p class="items-meta">Colecao desbloqueada: ${formatNumber(colecaoAtual)} / ${formatNumber(colecaoTotal)}</p>
         <div class="items-chips">
             ${listaChips}
@@ -1728,6 +1976,12 @@ function comprarUpgrade(upgradeId, buttonEl = null) {
     state.nivel += 1;
     state.preco = Math.floor(state.preco * UPGRADE_PRICE_MULTIPLIER);
 
+    if (upgrade.id === "event_luck") {
+        agendarProximoEventoDouble();
+        agendarProximoGoldenClick();
+        agendarProximoEventoEspecial();
+    }
+
     renderizarUpgrades();
     iniciarAutoClick();
     atualizarPontos();
@@ -1791,6 +2045,18 @@ function getAchievementProgress(achievement) {
 
     if (achievement.tipo === "special_upgrades") {
         return SPECIAL_UPGRADES.reduce((acc, upgrade) => acc + getUpgradeLevel(upgrade.id), 0);
+    }
+
+    if (achievement.tipo === "critical_clicks") {
+        return Math.max(0, Math.floor(safeNumber(gameState.totalCriticalClicks, 0)));
+    }
+
+    if (achievement.tipo === "random_events") {
+        return Math.max(0, Math.floor(safeNumber(gameState.randomEventsTriggered, 0)));
+    }
+
+    if (achievement.tipo === "xp_level") {
+        return Math.max(1, Math.floor(safeNumber(gameState.xpLevel, 1)));
     }
 
     return 0;
@@ -1879,7 +2145,7 @@ function renderizarConquistas() {
         return `
             <div class="shop-item ${unlocked ? "desbloqueado" : ""}">
                 <div class="item-info">
-                    <h3>${unlocked ? "â­" : "ðŸ”’"} ${achievement.nome}</h3>
+                    <h3>${unlocked ? "[OK]" : "[LOCK]"} ${achievement.nome}</h3>
                     <p>${achievement.descricao}</p>
                     <p>${formatNumber(progress)} / ${formatNumber(achievement.meta)}</p>
                     ${rewardLabel ? `<p class="achievement-reward">${rewardLabel}</p>` : ""}
@@ -2389,9 +2655,14 @@ function animarCliquePrincipal() {
 function registrarCliquePrincipal() {
     animarCliquePrincipal();
     tocarSomCliquePop();
-    const ganho = adicionarPontos(getClickPower());
+    const critico = Math.random() * 100 < getCurrentCritChancePercent();
+    const fatorCritico = critico ? getCurrentCritMultiplier() : 1;
+    const ganho = adicionarPontos(getClickPower() * fatorCritico);
     adicionarXpPorClique(1 + getXpGainPerClickUpgradeValue());
-    mostrarFeedbackPontos(ganho, "manual");
+    if (critico) {
+        gameState.totalCriticalClicks += 1;
+    }
+    mostrarFeedbackPontos(ganho, critico ? "critical" : "manual");
     gameState.totalClicks += 1;
 
     atualizarPontos();

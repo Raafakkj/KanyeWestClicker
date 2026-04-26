@@ -88,6 +88,16 @@ const SHOP_ITEMS = [
         usaPointer: true
     },
     {
+        id: "gold_auto_clicker",
+        nome: "Auto Clicker Dourado",
+        descricao: "+18 pontos por segundo (cursor dourado)",
+        precoBase: 12000,
+        tipo: "passive",
+        valor: 18,
+        usaPointer: true,
+        pointerVariant: "gold"
+    },
+    {
         id: "studio_team",
         nome: "Studio Team",
         descricao: "+6 pontos por segundo",
@@ -110,6 +120,14 @@ const SHOP_ITEMS = [
         precoBase: 6200,
         tipo: "passive",
         valor: 35
+    },
+    {
+        id: "robot_army",
+        nome: "Robot Army",
+        descricao: "+110 pontos por segundo",
+        precoBase: 42000,
+        tipo: "passive",
+        valor: 110
     },
     {
         id: "click_plus",
@@ -1658,7 +1676,7 @@ function atualizarCentroPonteiros() {
     atualizarPosicaoEventosVisuais();
 }
 
-function criarPointer(indice, totalPointers) {
+function criarPointer(indice, totalPointers, isGolden = false) {
     const pointer = document.createElement("img");
     pointer.src = POINTER_SVG_PATH;
     pointer.className = "pointer-orbit";
@@ -1678,7 +1696,7 @@ function criarPointer(indice, totalPointers) {
     pointer.style.animationDuration = `${duration}s`;
     pointer.style.animationDelay = `${delay}s`;
 
-    if (indice >= AUTOCLICKER_GOLDEN_POINTER_START) {
+    if (isGolden) {
         pointer.classList.add("golden");
     }
 
@@ -1688,9 +1706,21 @@ function criarPointer(indice, totalPointers) {
 function renderPointers() {
     document.querySelectorAll(".pointer-orbit[data-generated='1']").forEach((el) => el.remove());
 
-    const pointerCount = Math.min(gameState.shop.auto_clicker.quantidade, MAX_POINTERS);
-    for (let i = 1; i <= pointerCount; i += 1) {
-        criarPointer(i, pointerCount);
+    const normalPointers = Math.max(0, Math.floor(safeNumber(gameState.shop.auto_clicker?.quantidade, 0)));
+    const goldenPointers = Math.max(0, Math.floor(safeNumber(gameState.shop.gold_auto_clicker?.quantidade, 0)));
+    const totalPointers = Math.min(MAX_POINTERS, normalPointers + goldenPointers);
+
+    const normalToRender = Math.min(normalPointers, totalPointers);
+    const goldenToRender = Math.min(goldenPointers, Math.max(0, totalPointers - normalToRender));
+
+    let index = 1;
+    for (let i = 0; i < normalToRender; i += 1) {
+        criarPointer(index, totalPointers, false);
+        index += 1;
+    }
+    for (let i = 0; i < goldenToRender; i += 1) {
+        criarPointer(index, totalPointers, true);
+        index += 1;
     }
     atualizarCentroPonteiros();
 }
@@ -1733,24 +1763,12 @@ function atualizarBuffsHUD() {
     }
 
     const totalBonus = getTotalBonusPercent();
-    const critChance = getCurrentCritChancePercent();
-    const critMulti = getCurrentCritMultiplier();
-    const xpBonus = getXpLevelPointBonusPercent();
-    const eventLuck = getEventLuckPercent();
 
     hud.innerHTML = `
         <div class="buffs-grid">
             <div class="buff-pill">
                 <span class="buff-label">Aumento total de ganho</span>
                 <span class="buff-value">+${formatNumber(totalBonus)}%</span>
-            </div>
-            <div class="buff-pill">
-                <span class="buff-label">Critico</span>
-                <span class="buff-value">${formatNumber(critChance)}% | x${critMulti.toFixed(2).replace(".", ",")}</span>
-            </div>
-            <div class="buff-pill">
-                <span class="buff-label">Bônus de XP e sorte</span>
-                <span class="buff-value">XP: +${formatNumber(xpBonus)}% | Eventos: +${formatNumber(eventLuck)}%</span>
             </div>
         </div>
     `;
@@ -1780,6 +1798,18 @@ function atualizarBarraXp() {
     levelEl.textContent = `Nivel ${formatNumber(xpLevel)}`;
     progressEl.textContent = `${formatNumber(xpCurrent)} / ${formatNumber(xpRequired)} XP`;
     fillEl.style.width = `${progressPercent.toFixed(2)}%`;
+}
+
+function atualizarTourBusCorner() {
+    const corner = document.getElementById("tour-bus-corner");
+    if (!corner) {
+        return;
+    }
+
+    const quantidade = Math.max(0, Math.floor(safeNumber(gameState.shop?.tour_bus?.quantidade, 0)));
+    const show = quantidade > 0;
+    corner.classList.toggle("show", show);
+    corner.setAttribute("aria-hidden", show ? "false" : "true");
 }
 
 function atualizarItens() {
@@ -1860,6 +1890,7 @@ function atualizarItens() {
         </div>
     `;
 
+    atualizarTourBusCorner();
     atualizarBuffsHUD();
 }
 

@@ -12,15 +12,23 @@ const AUTOCLICKER_CLICK_DEPTH_BASE = 12;
 const AUTOCLICKER_CLICK_DEPTH_STEP = 0.7;
 const AUTOCLICKER_ORBIT_DURATION = 3.2;
 const AUTOCLICKER_EDGE_GAP = 8;
+const REBIRTH_BASE_COST = 250000;
+const REBIRTH_COST_MULTIPLIER = 2.05;
+const REBIRTH_BONUS_PER_LEVEL = 12;
+const POINTER_SVG_PATH = "assets/items/pointer.svg";
+const DEFAULT_MUSIC_VOLUME = 0.45;
+const LEADERBOARD_AUTO_SYNC_MS = 12000;
 const LEADERBOARD_DEFAULT_SCORES = [
     {
         nome: "KanyeFan",
         score: 1200,
+        rebirths: 0,
         criadoEm: "2026-04-25T12:00:00.000Z"
     },
     {
         nome: "Yeezus",
         score: 800,
+        rebirths: 0,
         criadoEm: "2026-04-25T11:30:00.000Z"
     }
 ];
@@ -142,6 +150,49 @@ const SKINS = [
         preco: 24000,
         bonus: 40,
         imagem: "assets/kanye/48bb3318d8ae27f31eba3f1db412d15d.752x752x1.jpg"
+    }
+];
+
+const MUSIC_TRACKS = [
+    {
+        id: 1,
+        nome: "Silencio",
+        preco: 0,
+        bonus: 0,
+        descricao: "Sem bonus de musica",
+        audio: ""
+    },
+    {
+        id: 2,
+        nome: "Stronger",
+        preco: 18000,
+        bonus: 55,
+        descricao: "+55% no ganho de pontos",
+        audio: "assets/music/stronger.mp3"
+    },
+    {
+        id: 3,
+        nome: "POWER",
+        preco: 45000,
+        bonus: 95,
+        descricao: "+95% no ganho de pontos",
+        audio: "assets/music/power.mp3"
+    },
+    {
+        id: 4,
+        nome: "Black Skinhead",
+        preco: 98000,
+        bonus: 145,
+        descricao: "+145% no ganho de pontos",
+        audio: "assets/music/black-skinhead.mp3"
+    },
+    {
+        id: 5,
+        nome: "Runaway Mix",
+        preco: 170000,
+        bonus: 210,
+        descricao: "+210% no ganho de pontos",
+        audio: "assets/music/runaway-mix.mp3"
     }
 ];
 
@@ -294,8 +345,35 @@ let gameState = createDefaultGameState();
 let leaderboardData = { scores: [] };
 let autoClickInterval = null;
 let conquistasPaginaAtual = 1;
+let musicPlayer = null;
+let currentPlayingMusicId = 0;
+let leaderboardAutoSyncInterval = null;
+let leaderboardSyncInProgress = false;
 
 function createDefaultGameState() {
+    const shop = createDefaultShopState();
+    const skins = createDefaultSkinsState();
+    const musics = createDefaultMusicsState();
+
+    return {
+        nickname: gerarNicknamePadrao(),
+        musicVolume: DEFAULT_MUSIC_VOLUME,
+        leaderboardRegistered: false,
+        leaderboardBestScore: 0,
+        points: 0,
+        totalClicks: 0,
+        shop,
+        skins,
+        musics,
+        currentSkinId: 1,
+        currentMusicId: 1,
+        rebirthCount: 0,
+        unlockedAchievements: [],
+        targetAlertShown: false
+    };
+}
+
+function createDefaultShopState() {
     const shop = {};
     SHOP_ITEMS.forEach((item) => {
         shop[item.id] = {
@@ -303,21 +381,28 @@ function createDefaultGameState() {
             preco: item.precoBase
         };
     });
+    return shop;
+}
 
+function gerarNicknamePadrao() {
+    const random = Math.floor(1000 + (Math.random() * 9000));
+    return `Player${random}`;
+}
+
+function createDefaultSkinsState() {
     const skins = {};
     SKINS.forEach((skin) => {
         skins[skin.id] = skin.id === 1;
     });
+    return skins;
+}
 
-    return {
-        points: 0,
-        totalClicks: 0,
-        shop,
-        skins,
-        currentSkinId: 1,
-        unlockedAchievements: [],
-        targetAlertShown: false
-    };
+function createDefaultMusicsState() {
+    const musics = {};
+    MUSIC_TRACKS.forEach((music) => {
+        musics[music.id] = music.id === 1;
+    });
+    return musics;
 }
 
 function formatNumber(value) {
@@ -329,12 +414,33 @@ function safeNumber(value, fallback = 0) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function clampVolumePercent(value) {
+    return Math.min(1, Math.max(0, safeNumber(value, DEFAULT_MUSIC_VOLUME)));
+}
+
+function getLeaderboardNickname() {
+    const nickname = normalizarNome(gameState.nickname);
+    return nickname || gerarNicknamePadrao();
+}
+
 function sumOwnedSkins() {
     return SKINS.filter((skin) => gameState.skins[skin.id]).length;
 }
 
+function sumOwnedMusics() {
+    return MUSIC_TRACKS.filter((music) => gameState.musics[music.id]).length;
+}
+
 function getCurrentSkin() {
     return SKINS.find((skin) => skin.id === gameState.currentSkinId) || SKINS[0];
+}
+
+function getCurrentMusic() {
+    return MUSIC_TRACKS.find((music) => music.id === gameState.currentMusicId) || MUSIC_TRACKS[0];
+}
+
+function getMusicById(id) {
+    return MUSIC_TRACKS.find((music) => music.id === id) || null;
 }
 
 function applySkinTheme(skinId) {
@@ -362,8 +468,91 @@ function getSkinBonusPercent() {
     return skin ? skin.bonus : 0;
 }
 
+function getMusicBonusPercent() {
+    const music = getCurrentMusic();
+    return music ? music.bonus : 0;
+}
+
+function pararMusicaAtual() {
+    if (!musicPlayer) {
+        currentPlayingMusicId = 0;
+        return;
+    }
+
+    musicPlayer.pause();
+    musicPlayer.removeAttribute("src");
+    musicPlayer.load();
+    currentPlayingMusicId = 0;
+}
+
+function aplicarVolumeMusica(volume = gameState.musicVolume) {
+    const nextVolume = clampVolumePercent(volume);
+    gameState.musicVolume = nextVolume;
+
+    if (musicPlayer) {
+        musicPlayer.volume = nextVolume;
+    }
+}
+
+async function tocarMusicaPorId(musicId, fromUserAction = false) {
+    const music = getMusicById(musicId);
+    if (!music || !music.audio) {
+        pararMusicaAtual();
+        return true;
+    }
+
+    if (!musicPlayer) {
+        musicPlayer = new Audio();
+        musicPlayer.loop = true;
+        musicPlayer.preload = "auto";
+    }
+
+    if (currentPlayingMusicId !== music.id || musicPlayer.src.indexOf(music.audio) === -1) {
+        musicPlayer.pause();
+        musicPlayer.src = music.audio;
+        musicPlayer.currentTime = 0;
+        currentPlayingMusicId = music.id;
+    }
+
+    aplicarVolumeMusica(gameState.musicVolume);
+
+    try {
+        await musicPlayer.play();
+        return true;
+    } catch (error) {
+        if (fromUserAction) {
+            alert(`Nao foi possivel tocar ${music.nome}. Confirme o arquivo em ${music.audio}.`);
+        } else {
+            console.warn(`Nao foi possivel iniciar ${music.nome} automaticamente.`, error);
+        }
+        return false;
+    }
+}
+
+function sincronizarMusicaAtiva(fromUserAction = false) {
+    const currentMusic = getCurrentMusic();
+    if (!currentMusic || currentMusic.id === 1 || !currentMusic.audio) {
+        pararMusicaAtual();
+        return;
+    }
+
+    tocarMusicaPorId(currentMusic.id, fromUserAction);
+}
+
+function getRebirthRequirement(rebirthCount = gameState.rebirthCount) {
+    return Math.max(1, Math.floor(REBIRTH_BASE_COST * Math.pow(REBIRTH_COST_MULTIPLIER, rebirthCount)));
+}
+
+function getRebirthBonusPercent() {
+    return Math.max(0, Math.floor(gameState.rebirthCount * REBIRTH_BONUS_PER_LEVEL));
+}
+
+function getTotalBonusPercent() {
+    return getSkinBonusPercent() + getMusicBonusPercent() + getRebirthBonusPercent();
+}
+
 function getGainMultiplier() {
-    return 1 + (getSkinBonusPercent() / 100);
+    return 1 + (getTotalBonusPercent() / 100);
 }
 
 function getClickPower() {
@@ -388,6 +577,96 @@ function getPassivePerSecond() {
 
 function getTotalOwnedItems() {
     return SHOP_ITEMS.reduce((acc, item) => acc + gameState.shop[item.id].quantidade, 0);
+}
+
+function calcularRebirthsPossiveisComPontos(pointsValue, rebirthCountBase = gameState.rebirthCount) {
+    let rebirths = 0;
+    let pontosRestantes = Math.max(0, Math.floor(safeNumber(pointsValue, 0)));
+    let rebirthAtual = Math.max(0, Math.floor(safeNumber(rebirthCountBase, 0)));
+
+    while (rebirths < 50) {
+        const custo = getRebirthRequirement(rebirthAtual);
+        if (pontosRestantes < custo) {
+            break;
+        }
+
+        pontosRestantes -= custo;
+        rebirths += 1;
+        rebirthAtual += 1;
+    }
+
+    return rebirths;
+}
+
+function atualizarRebirthUI() {
+    const requirement = getRebirthRequirement();
+    const rebirthsPossiveis = calcularRebirthsPossiveisComPontos(gameState.points);
+    const bonusPercent = getRebirthBonusPercent();
+
+    const statusEl = document.getElementById("rebirth-status");
+    if (statusEl) {
+        statusEl.textContent = `Rebirths: ${formatNumber(gameState.rebirthCount)} | Bonus: +${formatNumber(bonusPercent)}%`;
+    }
+
+    const nextEl = document.getElementById("rebirth-next");
+    if (nextEl) {
+        nextEl.textContent = rebirthsPossiveis > 0
+            ? `Pronto para rebirth: +${formatNumber(rebirthsPossiveis)} agora`
+            : `Proximo em ${formatNumber(requirement)} pontos`;
+    }
+
+    const floatButton = document.getElementById("rebirth-float-btn");
+    if (floatButton) {
+        floatButton.classList.toggle("show", rebirthsPossiveis > 0);
+    }
+}
+
+function resetarProgressaoParaRebirth() {
+    gameState.points = 0;
+    gameState.shop = createDefaultShopState();
+    gameState.skins = createDefaultSkinsState();
+    gameState.currentSkinId = 1;
+    gameState.unlockedAchievements = [];
+    gameState.targetAlertShown = false;
+    conquistasPaginaAtual = 1;
+
+    applyCurrentSkinVisual();
+}
+
+function tentarRebirth() {
+    const rebirthsGanhos = calcularRebirthsPossiveisComPontos(gameState.points);
+    if (rebirthsGanhos <= 0) {
+        alert(`Voce precisa de ${formatNumber(getRebirthRequirement())} pontos para fazer rebirth.`);
+        return;
+    }
+
+    const bonusAtual = getRebirthBonusPercent();
+    const bonusNovo = bonusAtual + (rebirthsGanhos * REBIRTH_BONUS_PER_LEVEL);
+
+    const confirmar = confirm(
+        `Fazer rebirth agora?\n\n` +
+        `Voce ganhara ${rebirthsGanhos} rebirth(s).\n` +
+        `Bonus permanente: +${bonusAtual}% -> +${bonusNovo}%.\n\n` +
+        `Isso vai resetar pontos, itens da loja, skins e conquistas.`
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    gameState.rebirthCount += rebirthsGanhos;
+    resetarProgressaoParaRebirth();
+
+    renderShop();
+    renderizarSkins();
+    renderizarConquistas();
+    renderPointers();
+    atualizarPontos();
+    atualizarItens();
+    verificarConquistas();
+    saveGameState();
+
+    mostrarAnimacaoCompra(`Rebirth +${rebirthsGanhos}! Bonus permanente aumentado.`);
 }
 
 function adicionarPontos(baseAmount) {
@@ -420,8 +699,15 @@ function loadGameState() {
             return;
         }
 
+        const loadedNickname = normalizarNome(parsed.nickname);
+        defaultState.nickname = loadedNickname || gerarNicknamePadrao();
+        defaultState.musicVolume = clampVolumePercent(safeNumber(parsed.musicVolume, DEFAULT_MUSIC_VOLUME));
+        defaultState.leaderboardRegistered = Boolean(parsed.leaderboardRegistered);
+        defaultState.leaderboardBestScore = Math.max(0, Math.floor(safeNumber(parsed.leaderboardBestScore, 0)));
+
         defaultState.points = Math.max(0, Math.floor(safeNumber(parsed.points, 0)));
         defaultState.totalClicks = Math.max(0, Math.floor(safeNumber(parsed.totalClicks, 0)));
+        defaultState.rebirthCount = Math.max(0, Math.floor(safeNumber(parsed.rebirthCount, 0)));
         defaultState.targetAlertShown = Boolean(parsed.targetAlertShown);
 
         if (parsed.shop && typeof parsed.shop === "object") {
@@ -443,8 +729,20 @@ function loadGameState() {
             });
         }
 
+        if (parsed.musics && typeof parsed.musics === "object") {
+            MUSIC_TRACKS.forEach((music) => {
+                if (music.id === 1) {
+                    defaultState.musics[music.id] = true;
+                } else {
+                    defaultState.musics[music.id] = Boolean(parsed.musics[music.id]);
+                }
+            });
+        }
+
         const currentSkinId = Math.floor(safeNumber(parsed.currentSkinId, 1));
         defaultState.currentSkinId = defaultState.skins[currentSkinId] ? currentSkinId : 1;
+        const currentMusicId = Math.floor(safeNumber(parsed.currentMusicId, 1));
+        defaultState.currentMusicId = defaultState.musics[currentMusicId] ? currentMusicId : 1;
 
         if (Array.isArray(parsed.unlockedAchievements)) {
             const valid = new Set(ACHIEVEMENTS.map((a) => a.id));
@@ -470,6 +768,7 @@ function sanitizeLeaderboardEntries(entries) {
         .map((entry) => ({
             nome: normalizarNome(entry.nome),
             score: Math.max(0, Math.floor(safeNumber(entry.score, 0))),
+            rebirths: Math.max(0, Math.floor(safeNumber(entry.rebirths, 0))),
             criadoEm: entry.criadoEm || new Date().toISOString()
         }))
         .filter((entry) => entry.nome.length > 0);
@@ -479,13 +778,13 @@ function sanitizeLeaderboardEntries(entries) {
     sanitized.forEach((entry) => {
         const key = entry.nome.toLowerCase();
         const existing = bestByPlayer.get(key);
-        if (!existing || entry.score > existing.score) {
+        if (!existing || entry.score > existing.score || (entry.score === existing.score && entry.rebirths > existing.rebirths)) {
             bestByPlayer.set(key, entry);
         }
     });
 
     return Array.from(bestByPlayer.values())
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => (b.score - a.score) || (b.rebirths - a.rebirths))
         .slice(0, MAX_LEADERBOARD_ENTRIES);
 }
 
@@ -616,7 +915,7 @@ function atualizarCentroPonteiros() {
 
 function criarPointer(indice, totalPointers) {
     const pointer = document.createElement("img");
-    pointer.src = "pointer.svg";
+    pointer.src = POINTER_SVG_PATH;
     pointer.className = "pointer-orbit";
     pointer.dataset.generated = "1";
 
@@ -656,27 +955,66 @@ function mostrarAnimacaoCompra(mensagem) {
     setTimeout(() => anim.remove(), 1500);
 }
 
+function atualizarBuffsHUD() {
+    const hud = document.getElementById("buffs-hud");
+    if (!hud) {
+        return;
+    }
+
+    const skinBonus = getSkinBonusPercent();
+    const musicBonus = getMusicBonusPercent();
+    const rebirthBonus = getRebirthBonusPercent();
+    const totalBonus = getTotalBonusPercent();
+    const clickPower = getClickPower();
+    const passive = getPassivePerSecond();
+    const currentMusic = getCurrentMusic();
+
+    hud.innerHTML = `
+        <h3>Buffs Ativos</h3>
+        <p>Skin: +${formatNumber(skinBonus)}%</p>
+        <p>Musica (${currentMusic.nome}): +${formatNumber(musicBonus)}%</p>
+        <p>Rebirth: +${formatNumber(rebirthBonus)}%</p>
+        <p>Total: +${formatNumber(totalBonus)}%</p>
+        <p>Clique: ${formatNumber(clickPower)} | Passivo/s: ${formatNumber(passive)}</p>
+    `;
+}
+
 function atualizarPontos() {
     document.getElementById("points").innerText = `Kanye Points: ${formatNumber(gameState.points)}`;
+    atualizarRebirthUI();
+    atualizarBuffsHUD();
 }
 
 function atualizarItens() {
-    const itens = [];
+    const itemsContainer = document.getElementById("items");
+    if (!itemsContainer) {
+        return;
+    }
 
+    const itensComprados = [];
     SHOP_ITEMS.forEach((item) => {
         const quantidade = gameState.shop[item.id].quantidade;
         if (quantidade > 0) {
-            itens.push(`${item.nome} x${quantidade}`);
+            itensComprados.push(`<span class="item-chip">${item.nome} x${formatNumber(quantidade)}</span>`);
         }
     });
 
     const skinAtual = getCurrentSkin();
-    if (skinAtual) {
-        itens.push(`Skin ativa: ${skinAtual.nome}`);
-    }
+    const musicaAtual = getCurrentMusic();
 
-    const textoItens = itens.length > 0 ? itens.join(", ") : "Nenhum";
-    document.getElementById("items").textContent = `Itens: ${textoItens}`;
+    itemsContainer.innerHTML = `
+        <div class="items-title">Inventario</div>
+        <p class="items-meta">Nickname: ${getLeaderboardNickname()}</p>
+        <p class="items-meta">Upgrades comprados: ${formatNumber(getTotalOwnedItems())}</p>
+        <div class="items-chips">
+            ${itensComprados.length > 0 ? itensComprados.join("") : "<span class='items-empty'>Nenhum item comprado ainda</span>"}
+        </div>
+        <p class="items-meta">Skin ativa: ${skinAtual.nome} (+${formatNumber(getSkinBonusPercent())}%)</p>
+        <p class="items-meta">Musica ativa: ${musicaAtual.nome} (+${formatNumber(getMusicBonusPercent())}%)</p>
+        <p class="items-meta">Skins: ${formatNumber(sumOwnedSkins())} | Musicas: ${formatNumber(sumOwnedMusics())} | Rebirths: ${formatNumber(gameState.rebirthCount)}</p>
+    `;
+
+    atualizarBuffsHUD();
 }
 
 function checkTarget() {
@@ -950,11 +1288,180 @@ function fecharPersonalizacao() {
     document.getElementById("customization").style.display = "none";
 }
 
+function renderizarMusicas() {
+    const container = document.getElementById("lista-musicas");
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = MUSIC_TRACKS.map((music) => {
+        const comprado = Boolean(gameState.musics[music.id]);
+        const usando = gameState.currentMusicId === music.id;
+
+        return `
+            <div class="shop-item ${comprado ? "comprado" : ""}">
+                <div class="item-info">
+                    <h3>${usando ? "*" : ""} ${music.nome}</h3>
+                    <p>${music.descricao}</p>
+                    <p>${music.preco === 0 ? "Gratis" : `${formatNumber(music.preco)} pontos`}</p>
+                    <p>Bonus: +${music.bonus}%</p>
+                </div>
+                ${comprado
+                    ? (usando
+                        ? "<button class='shop-btn' disabled>Tocando</button>"
+                        : `<button class='shop-btn' onclick='usarMusica(${music.id})'>Usar</button>`)
+                    : `<button class='shop-btn' onclick='comprarMusica(${music.id})'>Comprar</button>`
+                }
+            </div>
+        `;
+    }).join("");
+}
+
+function comprarMusica(id) {
+    const music = MUSIC_TRACKS.find((entry) => entry.id === id);
+    if (!music) {
+        return;
+    }
+
+    if (gameState.musics[music.id]) {
+        usarMusica(music.id);
+        return;
+    }
+
+    if (gameState.points < music.preco) {
+        alert("Pontos insuficientes!");
+        return;
+    }
+
+    gameState.points -= music.preco;
+    gameState.musics[music.id] = true;
+    gameState.currentMusicId = music.id;
+    sincronizarMusicaAtiva(true);
+
+    atualizarPontos();
+    atualizarItens();
+    renderizarMusicas();
+    verificarConquistas();
+    saveGameState();
+
+    mostrarAnimacaoCompra(`Musica liberada: ${music.nome} tocando agora!`);
+}
+
+function usarMusica(id) {
+    if (!gameState.musics[id]) {
+        return;
+    }
+
+    gameState.currentMusicId = id;
+    sincronizarMusicaAtiva(true);
+    atualizarPontos();
+    atualizarItens();
+    renderizarMusicas();
+    verificarConquistas();
+    saveGameState();
+
+    const music = getCurrentMusic();
+    mostrarAnimacaoCompra(`Tocando: ${music.nome} (+${music.bonus}%)`);
+}
+
+function abrirLojaMusicas() {
+    renderizarMusicas();
+    document.getElementById("music-shop").style.display = "flex";
+}
+
+function fecharLojaMusicas() {
+    document.getElementById("music-shop").style.display = "none";
+}
+
+function atualizarInputsConfig() {
+    const nickname = getLeaderboardNickname();
+    const volumePercent = Math.round(clampVolumePercent(gameState.musicVolume) * 100);
+
+    const leaderboardNickname = document.getElementById("leaderboard-current-nickname");
+    if (leaderboardNickname) {
+        leaderboardNickname.textContent = `Nickname: ${nickname}`;
+    }
+
+    const settingsNick = document.getElementById("settings-nickname");
+    if (settingsNick) {
+        settingsNick.value = nickname;
+    }
+
+    const settingsVolume = document.getElementById("settings-volume");
+    if (settingsVolume) {
+        settingsVolume.value = String(volumePercent);
+    }
+
+    const settingsVolumeValue = document.getElementById("settings-volume-value");
+    if (settingsVolumeValue) {
+        settingsVolumeValue.textContent = `${volumePercent}%`;
+    }
+}
+
+function atualizarPreviewVolumeConfiguracoes(value) {
+    const volumePercent = Math.min(100, Math.max(0, Math.floor(safeNumber(value, 45))));
+    const settingsVolumeValue = document.getElementById("settings-volume-value");
+    if (settingsVolumeValue) {
+        settingsVolumeValue.textContent = `${volumePercent}%`;
+    }
+
+    if (musicPlayer) {
+        musicPlayer.volume = volumePercent / 100;
+    }
+}
+
+function abrirConfiguracoes() {
+    atualizarInputsConfig();
+    document.getElementById("settings").style.display = "flex";
+}
+
+function fecharConfiguracoes() {
+    document.getElementById("settings").style.display = "none";
+    aplicarVolumeMusica(gameState.musicVolume);
+    atualizarInputsConfig();
+}
+
+async function salvarConfiguracoes() {
+    const nicknameInput = document.getElementById("settings-nickname");
+    const volumeInput = document.getElementById("settings-volume");
+
+    const novoNickname = normalizarNome(nicknameInput ? nicknameInput.value : "");
+    if (!novoNickname) {
+        alert("Digite um nickname valido.");
+        return;
+    }
+
+    const volumePercent = Math.min(100, Math.max(0, Math.floor(safeNumber(volumeInput ? volumeInput.value : 45, 45))));
+    const volume = volumePercent / 100;
+
+    const nicknameAnterior = getLeaderboardNickname();
+    const mudouNickname = nicknameAnterior.toLowerCase() !== novoNickname.toLowerCase();
+
+    gameState.nickname = novoNickname;
+    aplicarVolumeMusica(volume);
+
+    if (mudouNickname) {
+        gameState.leaderboardRegistered = false;
+        gameState.leaderboardBestScore = 0;
+    }
+
+    saveGameState();
+    atualizarInputsConfig();
+    atualizarItens();
+    fecharConfiguracoes();
+
+    mostrarAnimacaoCompra("Configuracoes salvas!");
+
+    if (mudouNickname) {
+        await sincronizarLeaderboardAutomaticamente(true);
+    }
+}
+
 function normalizarNome(nome) {
     return String(nome || "").trim().slice(0, 20);
 }
 
-function atualizarRegistroLeaderboard(nome, score) {
+function atualizarRegistroLeaderboard(nome, score, rebirths = 0) {
     const key = nome.toLowerCase();
     const nowIso = new Date().toISOString();
     const current = Array.isArray(leaderboardData.scores) ? leaderboardData.scores : [];
@@ -971,6 +1478,7 @@ function atualizarRegistroLeaderboard(nome, score) {
             ...entry,
             nome,
             score: Math.max(entry.score, score),
+            rebirths: Math.max(entry.rebirths || 0, rebirths),
             criadoEm: nowIso
         };
     });
@@ -979,12 +1487,42 @@ function atualizarRegistroLeaderboard(nome, score) {
         updated.push({
             nome,
             score,
+            rebirths,
             criadoEm: nowIso
         });
     }
 
     leaderboardData.scores = sanitizeLeaderboardEntries(updated);
     saveLeaderboardCache();
+}
+
+async function enviarScoreLeaderboard(nome, score, rebirths) {
+    try {
+        const response = await fetch(LEADERBOARD_API, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nome,
+                score,
+                rebirths
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("Falha ao salvar leaderboard compartilhada");
+        }
+
+        const data = await response.json();
+        leaderboardData = {
+            scores: sanitizeLeaderboardEntries(data.scores)
+        };
+        saveLeaderboardCache();
+    } catch (error) {
+        console.warn("Servidor indisponivel. Salvando leaderboard local.", error);
+        atualizarRegistroLeaderboard(nome, score, rebirths);
+    }
 }
 
 function renderizarLeaderboard(scores) {
@@ -1006,7 +1544,7 @@ function renderizarLeaderboard(scores) {
         <div class="shop-item">
             <div class="item-info">
                 <h3><span class="leaderboard-rank">#${index + 1}</span> ${entry.nome}</h3>
-                <p>${new Date(entry.criadoEm).toLocaleString("pt-BR")}</p>
+                <p>${new Date(entry.criadoEm).toLocaleString("pt-BR")} | Rebirths: ${formatNumber(entry.rebirths || 0)}</p>
             </div>
             <span class="leaderboard-score">${formatNumber(entry.score)} pts</span>
         </div>
@@ -1014,6 +1552,7 @@ function renderizarLeaderboard(scores) {
 }
 
 async function abrirLeaderboard() {
+    atualizarInputsConfig();
     document.getElementById("leaderboard").style.display = "flex";
     await carregarLeaderboard(true);
 }
@@ -1023,52 +1562,69 @@ function fecharLeaderboard() {
 }
 
 async function salvarScoreLeaderboard() {
-    const input = document.getElementById("leaderboard-name");
-    const nome = normalizarNome(input.value);
+    const nome = getLeaderboardNickname();
 
     if (!nome) {
-        alert("Digite seu nome para salvar no ranking.");
-        return;
-    }
-
-    if (gameState.points <= 0) {
-        alert("Faca alguns pontos antes de salvar.");
+        alert("Digite um nickname valido para salvar no ranking.");
         return;
     }
 
     const scoreAtual = Math.floor(gameState.points);
+    const rebirthsAtuais = Math.floor(gameState.rebirthCount);
 
-    try {
-        const response = await fetch(LEADERBOARD_API, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                nome,
-                score: scoreAtual
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("Falha ao salvar leaderboard compartilhada");
-        }
-
-        const data = await response.json();
-        leaderboardData = {
-            scores: sanitizeLeaderboardEntries(data.scores)
-        };
-        saveLeaderboardCache();
-    } catch (error) {
-        console.warn("Servidor indisponivel. Salvando leaderboard local.", error);
-        atualizarRegistroLeaderboard(nome, scoreAtual);
-    }
+    await enviarScoreLeaderboard(nome, scoreAtual, rebirthsAtuais);
+    gameState.leaderboardRegistered = true;
+    gameState.leaderboardBestScore = Math.max(gameState.leaderboardBestScore, scoreAtual);
+    saveGameState();
+    atualizarInputsConfig();
 
     renderizarLeaderboard(leaderboardData.scores);
     verificarConquistas();
 
-    input.value = "";
     mostrarAnimacaoCompra(`Score salvo para ${nome}!`);
+}
+
+async function sincronizarLeaderboardAutomaticamente(forceSubmit = false) {
+    if (leaderboardSyncInProgress) {
+        return;
+    }
+
+    leaderboardSyncInProgress = true;
+
+    try {
+        const nome = getLeaderboardNickname();
+        const scoreAtual = Math.floor(gameState.points);
+        const rebirthsAtuais = Math.floor(gameState.rebirthCount);
+
+        const precisaRegistrar = !gameState.leaderboardRegistered;
+        const bateuNovoRecorde = scoreAtual > gameState.leaderboardBestScore;
+        const deveEnviar = forceSubmit || precisaRegistrar || bateuNovoRecorde;
+
+        if (deveEnviar) {
+            await enviarScoreLeaderboard(nome, scoreAtual, rebirthsAtuais);
+            gameState.leaderboardRegistered = true;
+            gameState.leaderboardBestScore = Math.max(gameState.leaderboardBestScore, scoreAtual);
+            saveGameState();
+            atualizarInputsConfig();
+        } else {
+            await carregarLeaderboard(false);
+        }
+
+        renderizarLeaderboard(leaderboardData.scores);
+        verificarConquistas();
+    } finally {
+        leaderboardSyncInProgress = false;
+    }
+}
+
+function iniciarAutoSyncLeaderboard() {
+    if (leaderboardAutoSyncInterval) {
+        clearInterval(leaderboardAutoSyncInterval);
+    }
+
+    leaderboardAutoSyncInterval = setInterval(() => {
+        sincronizarLeaderboardAutomaticamente(false);
+    }, LEADERBOARD_AUTO_SYNC_MS);
 }
 
 function iniciarAutoClick() {
@@ -1104,16 +1660,26 @@ async function initGame() {
     loadGameState();
     await carregarLeaderboard();
 
+    aplicarVolumeMusica(gameState.musicVolume);
     applyCurrentSkinVisual();
     renderShop();
     renderizarSkins();
+    renderizarMusicas();
     renderizarConquistas();
     renderPointers();
+    atualizarInputsConfig();
     atualizarPontos();
     atualizarItens();
 
+    await sincronizarLeaderboardAutomaticamente(true);
+    iniciarAutoSyncLeaderboard();
     verificarConquistas();
     iniciarAutoClick();
+    sincronizarMusicaAtiva(false);
+
+    document.addEventListener("pointerdown", () => {
+        sincronizarMusicaAtiva(false);
+    }, { once: true });
 
     document.getElementById("kanye").addEventListener("click", registrarCliquePrincipal);
     window.addEventListener("resize", atualizarCentroPonteiros);

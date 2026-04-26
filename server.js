@@ -43,6 +43,7 @@ function normalizeLeaderboardEntries(entries) {
         .map((entry) => ({
             nome: normalizePlayerName(entry && entry.nome),
             score: Math.max(0, Math.floor(Number(entry && entry.score) || 0)),
+            rebirths: Math.max(0, Math.floor(Number(entry && entry.rebirths) || 0)),
             criadoEm: entry && entry.criadoEm ? String(entry.criadoEm) : new Date().toISOString()
         }))
         .filter((entry) => entry.nome.length > 0);
@@ -51,13 +52,13 @@ function normalizeLeaderboardEntries(entries) {
     sanitized.forEach((entry) => {
         const key = entry.nome.toLowerCase();
         const current = bestByPlayer.get(key);
-        if (!current || entry.score > current.score) {
+        if (!current || entry.score > current.score || (entry.score === current.score && entry.rebirths > current.rebirths)) {
             bestByPlayer.set(key, entry);
         }
     });
 
     return Array.from(bestByPlayer.values())
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => (b.score - a.score) || (b.rebirths - a.rebirths))
         .slice(0, MAX_LEADERBOARD_ENTRIES);
 }
 
@@ -68,8 +69,8 @@ async function ensureLeaderboardFile() {
 
     const seed = {
         scores: [
-            { nome: "KanyeFan", score: 1200, criadoEm: "2026-04-25T12:00:00.000Z" },
-            { nome: "Yeezus", score: 800, criadoEm: "2026-04-25T11:30:00.000Z" }
+            { nome: "KanyeFan", score: 1200, rebirths: 0, criadoEm: "2026-04-25T12:00:00.000Z" },
+            { nome: "Yeezus", score: 800, rebirths: 0, criadoEm: "2026-04-25T11:30:00.000Z" }
         ]
     };
 
@@ -138,6 +139,7 @@ async function handleLeaderboardApi(req, res) {
 
         const nome = normalizePlayerName(payload.nome);
         const score = Math.max(0, Math.floor(Number(payload.score) || 0));
+        const rebirths = Math.max(0, Math.floor(Number(payload.rebirths) || 0));
 
         if (!nome) {
             sendJson(res, 400, { error: "Nome invalido" });
@@ -154,12 +156,14 @@ async function handleLeaderboardApi(req, res) {
                     ...entries[existingIndex],
                     nome,
                     score: Math.max(entries[existingIndex].score, score),
+                    rebirths: Math.max(entries[existingIndex].rebirths || 0, rebirths),
                     criadoEm: new Date().toISOString()
                 };
             } else {
                 entries.push({
                     nome,
                     score,
+                    rebirths,
                     criadoEm: new Date().toISOString()
                 });
             }

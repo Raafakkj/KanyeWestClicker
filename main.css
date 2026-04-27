@@ -131,6 +131,118 @@ body {
     overflow: hidden;
 }
 
+.tour-bus-corner {
+    position: absolute;
+    right: 18px;
+    bottom: 20px;
+    width: 98px;
+    height: 98px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.tour-bus-corner.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.tour-bus-corner img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.stream-farm-corner {
+    position: absolute;
+    left: 18px;
+    top: 20px;
+    width: 98px;
+    height: 98px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.stream-farm-corner.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.stream-farm-corner img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.beat-pack-corner {
+    position: absolute;
+    right: 18px;
+    top: 20px;
+    width: 98px;
+    height: 98px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.beat-pack-corner.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.beat-pack-corner img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.yeezy-campaign-corner {
+    position: absolute;
+    left: 18px;
+    bottom: 20px;
+    width: 98px;
+    height: 98px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.yeezy-campaign-corner.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.yeezy-campaign-corner img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .xp-fill {
     width: 0%;
     height: 100%;
@@ -194,7 +306,7 @@ body {
     }
 }
 
-.clicker-container img {
+.clicker-container #kanye > img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
@@ -566,10 +678,13 @@ body {
     width: min(95vw, 920px);
 }
 
+#upgrades .shop-box {
+    width: min(95vw, 860px);
+}
+
 #achievements .shop-box,
 #leaderboard .shop-box,
 #customization .shop-box,
-#upgrades .shop-box,
 #music-shop .shop-box,
 #settings .shop-box {
     width: min(95vw, 680px);
@@ -670,6 +785,12 @@ body {
 .shop-items {
     display: flex;
     flex-direction: column;
+    gap: 12px;
+}
+
+#upgrades-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -1026,6 +1147,13 @@ body.double-event-rgb::before {
     box-shadow: 0 0 18px rgba(120, 210, 255, 0.18);
 }
 
+.click-gain-feedback.critical {
+    color: #ffe49f;
+    border-color: rgba(255, 222, 126, 0.45);
+    background: rgba(115, 71, 17, 0.66);
+    box-shadow: 0 0 22px rgba(255, 210, 102, 0.34);
+}
+
 @keyframes clickGainFloat {
     0% {
         opacity: 0;
@@ -1059,6 +1187,10 @@ body.double-event-rgb::before {
     --pointer-face-angle: -90deg;
     animation: orbitClick var(--duration, 3s) linear infinite;
     animation-delay: var(--delay, 0s);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+}
+
+.pointer-orbit.golden {
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
 }
 
@@ -1252,6 +1384,10 @@ body.double-event-rgb::before {
         padding: 14px;
     }
 
+    #upgrades-list {
+        grid-template-columns: 1fr;
+    }
+
     .leaderboard-form {
         grid-template-columns: 1fr;
     }
@@ -1294,6 +1430,34 @@ body.double-event-rgb::before {
 
     .clicker-container {
         min-height: 248px;
+    }
+
+    .tour-bus-corner {
+        width: 72px;
+        height: 72px;
+        right: 10px;
+        bottom: 12px;
+    }
+
+    .stream-farm-corner {
+        width: 72px;
+        height: 72px;
+        left: 10px;
+        top: 12px;
+    }
+
+    .beat-pack-corner {
+        width: 72px;
+        height: 72px;
+        right: 10px;
+        top: 12px;
+    }
+
+    .yeezy-campaign-corner {
+        width: 72px;
+        height: 72px;
+        left: 10px;
+        bottom: 12px;
     }
 
     .xp-panel {
